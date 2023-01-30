@@ -16,7 +16,7 @@ using MonoDevelop.Ide.TypeSystem;
 using MonoDevelop.Projects;
 using MonoDevelop.Core;
 using HotReload.Builder;
-using TcpServerSlim;
+using TcpServer.Slim;
 
 
 namespace HotReload
@@ -50,7 +50,18 @@ namespace HotReload
             server.ClientConnected += Server_ClientConnected;
             server.ClientDisconnected += client => Console.WriteLine($"Client disconnected: {client.Guid}");
 
-            server.Run().Wait();
+            Task.Run(server.Run);
+        }
+
+        private void Server_ClientConnected(TcpClientSlim client)
+        {
+            client.DataReceived += Client_DataReceived; ;
+            Console.WriteLine($"Client connected: {client.Guid}");
+        }
+
+        private void Client_DataReceived(TcpClientSlim client, string message)
+        {
+            Console.WriteLine($@"Client: {client.Guid}, data received");
         }
 
         //        TcpClient hotReloadClient = null;
