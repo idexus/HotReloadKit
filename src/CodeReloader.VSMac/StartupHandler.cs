@@ -19,21 +19,30 @@ using HotReload.Builder;
 using TcpServer.Slim;
 
 
-namespace HotReload
+namespace CodeReloader.VSMac
 {
     public class StartupHandler : CommandHandler
     {
+        // static memnbers
+
+        static SemaphoreSlim semaphore = new SemaphoreSlim(1);
         static int asseblyVersion = 0;
 
-        protected override void Run()
-        {
-            IdeServices.ProjectOperations.BeforeStartProject += ProjectOperations_BeforeStartProject;
-        }
+        // private
+
+        TcpServerSlim tcpServer;
+        DotNetProject memActiveProject = null;
+        List<string> changedFilePaths = new List<string>();
 
         DotNetProject ActiveProject
             => (IdeApp.ProjectOperations.CurrentSelectedSolution?.StartupItem
                 ?? IdeApp.ProjectOperations.CurrentSelectedBuildTarget)
                 as DotNetProject;
+
+        protected override void Run()
+        {
+            IdeServices.ProjectOperations.BeforeStartProject += ProjectOperations_BeforeStartProject;
+        }
 
         void ProjectOperations_BeforeStartProject(object sender, EventArgs e)
         {
@@ -43,14 +52,15 @@ namespace HotReload
 
         void StartTcpServer()
         {
-            var server = new TcpServerSlim();
 
-            server.ServerStarted += server => Console.WriteLine($"Server started");
-            server.ServerStopped += server => Console.WriteLine($"Server stopped");
-            server.ClientConnected += Server_ClientConnected;
-            server.ClientDisconnected += client => Console.WriteLine($"Client disconnected: {client.Guid}");
+            tcpServer = new TcpServerSlim();
 
-            Task.Run(server.Run);
+            tcpServer.ServerStarted += server => Console.WriteLine($"Server started");
+            tcpServer.ServerStopped += server => Console.WriteLine($"Server stopped");
+            tcpServer.ClientConnected += Server_ClientConnected;
+            tcpServer.ClientDisconnected += client => Console.WriteLine($"Client disconnected: {client.Guid}");
+
+            tcpServer.Start();
         }
 
         private void Server_ClientConnected(TcpClientSlim client)
@@ -62,52 +72,20 @@ namespace HotReload
         private void Client_DataReceived(TcpClientSlim client, string message)
         {
             Console.WriteLine($@"Client: {client.Guid}, data received");
+
+            Task.Run(async () =>
+            {
+                await semaphore.WaitAsync();
+
+                var configuration = IdeApp.Workspace.ActiveConfiguration;
+                var dllName = ActiveProject.GetOutputFileName(configuration).FileNameWithoutExtension;
+
+                await CompileAndEmitChanges(dllName, changedFilePaths);
+                changedFilePaths.Clear();
+
+                semaphore.Release();
+            });
         }
-
-        //        TcpClient hotReloadClient = null;
-        //        CancellationTokenSource serverCancellationTokenSource;
-        //        void StartTcpServer()
-        //        {
-        //            Task.Factory.StartNew(async () =>
-        //            {
-        //                var ipEndPoint = new IPEndPoint(IPAddress.Any, 9988);
-        //                TcpListener listener = null;
-        //                try
-        //                {
-        //                    listener = new TcpListener(ipEndPoint);
-        //                    listener.Start();
-        //                    Console.WriteLine("Server started");
-
-        //                    serverCancellationTokenSource = new CancellationTokenSource();
-        //                    hotReloadClient = await listener.AcceptTcpClientAsync(serverCancellationTokenSource.Token);
-        //                    Console.WriteLine("Hot Reload connected");
-
-        //                    var token = await hotReloadClient.GetStream().ReadStringAsync();
-        //                    Console.WriteLine("Get Token");
-
-        //                    StartHotReloadSession();
-
-        //                    await IdeServices.ProjectOperations.CurrentRunOperation.Task;
-        //                    Console.WriteLine("End running");
-
-        //                    StopHotReloadSession();
-        //                }
-        //#pragma warning disable CS0168
-        //                catch (Exception ex)
-        //                {
-        //                }
-        //#pragma warning restore CS0168
-        //                finally
-        //                {
-        //                    serverCancellationTokenSource?.Cancel();
-        //                    hotReloadClient?.Close();
-        //                    listener?.Stop();
-        //                    hotReloadClient = null;
-        //                }
-        //            }, TaskCreationOptions.LongRunning);
-        //        }
-
-        DotNetProject memActiveProject = null;
 
         void StartHotReloadSession()
         {
@@ -176,7 +154,7 @@ namespace HotReload
                     var projects = solution.Projects;
                     var activeProject = solution.Projects.FirstOrDefault(e => e.AssemblyName.Equals(activeProjectName) && e.Name.Contains(frameworkShortName));
 
-                    var sharpCompilation = new SharpCompilation
+                    var codeCompilation = new CodeCompilation
                     {
                         HotReloadRequest = hotReloadRequest,
                         Solution = solution,
@@ -185,14 +163,14 @@ namespace HotReload
                         ChangedFilePaths = changedFilePaths
                     };
 
-                    await sharpCompilation.Compile();
+                    await codeCompilation.Compile();
 
                     // ------- send data assembly ---------
 
                     var streamWriter = new StreamWriter(pipeClient);
                     streamWriter.AutoFlush = true;
 
-                    await sharpCompilation.EmitJsonDataAsync(async jsonData =>
+                    await codeCompilation.EmitJsonDataAsync(async jsonData =>
                     {
                         await streamWriter.WriteLineAsync(jsonData);
                     });
@@ -206,19 +184,15 @@ namespace HotReload
 #pragma warning restore CS0168
         }
 
-        static SemaphoreSlim semaphore = new SemaphoreSlim(1);
         async void ActiveProject_FileChangedInProject(object sender, ProjectFileEventArgs args)
         {
             await semaphore.WaitAsync();
 
-            var configuration = IdeApp.Workspace.ActiveConfiguration;
-            var dllName = ActiveProject.GetOutputFileName(configuration).FileNameWithoutExtension;
+            var lastChangedFiles =
+                args.Where(e => !e.ProjectFile.FilePath.FullPath.ToString().Contains(".g.cs"))
+                    .Select(e => e.ProjectFile.FilePath.FullPath.ToString());
 
-            var changedFilePaths = args
-                .Where(e => !e.ProjectFile.FilePath.FullPath.ToString().Contains(".g.cs"))
-                .Select(e => e.ProjectFile.FilePath.FullPath.ToString());
-
-            await CompileAndEmitChanges(dllName, changedFilePaths);
+            changedFilePaths.AddRange(lastChangedFiles);
 
             semaphore.Release();
         }

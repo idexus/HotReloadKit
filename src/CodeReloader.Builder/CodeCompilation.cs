@@ -10,7 +10,7 @@ public class HotReloadRequest
     public string[] TypeNames { get; set; }
 }
 
-public class SharpCompilation
+public class CodeCompilation
 {
     class HotReloadData
     {

@@ -2,8 +2,8 @@
 <Project Sdk="Microsoft.Net.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>HotReload</RootNamespace>
-    <AssemblyName>SharpUI.HotReload</AssemblyName>
+    <RootNamespace>CodeReloader.VSMac</RootNamespace>
+    <AssemblyName>CodeReloader.VSMac</AssemblyName>
 	<TargetFramework>net6.0</TargetFramework>
     <IsAddin>True</IsAddin>
   </PropertyGroup>
@@ -12,6 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libs\TcpServer.Slim\src\TcpServer.Slim\TcpServer.Slim.csproj" />
-    <ProjectReference Include="..\HotReload.Builder\HotReload.Builder.csproj" />
+    <ProjectReference Include="..\CodeReloader.Builder\CodeReloader.Builder.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
-# Sharp.UI Hot reload plugin
+# CodeReloader
 
-VS2022 Sharp.UI Hot Reload extension plugin.
+Hot Reload plugin for C# projects.
 
 # License
 
