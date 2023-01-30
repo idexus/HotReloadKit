@@ -1,0 +1,3 @@
+[submodule "libs/TcpServer.Slim"]
+	path = libs/TcpServer.Slim
+	url = https://github.com/idexus/TcpServer.Slim.git
