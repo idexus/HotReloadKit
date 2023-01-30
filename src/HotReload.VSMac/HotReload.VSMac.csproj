@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.Net.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>HotReload</RootNamespace>
+    <AssemblyName>SharpUI.HotReload</AssemblyName>
+	<TargetFramework>net6.0</TargetFramework>
+    <IsAddin>True</IsAddin>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudioMac.Sdk" Version="17.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\TcpServer.Slim\src\TcpServer.Slim\TcpServer.Slim.csproj" />
+  </ItemGroup>
+</Project>
