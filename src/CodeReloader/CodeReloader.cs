@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using TcpServerSlim;
+using SlimMessenger;
 
 namespace CodeReloadSupport;
 
@@ -33,7 +33,7 @@ public static class CodeReloader
         projectType = typeof(T);
         Task.Run(async () =>
         {
-            var client = new TcpClientSlim();
+            var client = new SlimClient();
 
             client.DataReceived += Client_DataReceived;
             client.ClientConnected += client => Console.WriteLine("Hot reload connected");
@@ -51,7 +51,7 @@ public static class CodeReloader
     }
 
     static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-    static void Client_DataReceived(TcpClientSlim client, string message)
+    static void Client_DataReceived(SlimClient client, string message)
     {
         Task.Run(async () =>
         {

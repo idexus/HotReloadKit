@@ -19,7 +19,7 @@ namespace CodeReloader.VSMac
     using MonoDevelop.Core;
     using HotReload.Builder;
     using System.Net.Sockets;
-    using TcpServerSlim;
+    using SlimMessenger;
 
     public class StartupHandler : CommandHandler
     {
@@ -31,8 +31,8 @@ namespace CodeReloader.VSMac
 
         // private
 
-        TcpServerSlim tcpServer;
-        TcpClientSlim tcpClient;
+        SlimServer tcpServer;
+        SlimClient tcpClient;
 
         DotNetProject memActiveProject = null;
         List<string> changedFilePaths = new List<string>();
@@ -63,7 +63,7 @@ namespace CodeReloader.VSMac
 
         void StartTcpServer()
         {
-            tcpServer = new TcpServerSlim();
+            tcpServer = new SlimServer();
 
             tcpServer.ServerStarted += server => Console.WriteLine($"Server started");
             tcpServer.ServerStopped += server => Console.WriteLine($"Server stopped");
@@ -78,14 +78,14 @@ namespace CodeReloader.VSMac
             tcpServer.Stop();
         }
 
-        private void Server_ClientConnected(TcpClientSlim client)
+        private void Server_ClientConnected(SlimClient client)
         {
             tcpClient = client;
             client.DataReceived += Client_DataReceived; ;
             Console.WriteLine($"Client connected: {client.Guid}");
         }
 
-        private void Client_DataReceived(TcpClientSlim client, string message)
+        private void Client_DataReceived(SlimClient client, string message)
         {
             Console.WriteLine($@"Client: {client.Guid}, data received");
 
@@ -167,7 +167,7 @@ namespace CodeReloader.VSMac
             return null;
         }
 
-        async Task CompileAndEmitChanges(TcpClientSlim client, HotReloadRequest hotReloadRequest)
+        async Task CompileAndEmitChanges(SlimClient client, HotReloadRequest hotReloadRequest)
         {
             try
             {
