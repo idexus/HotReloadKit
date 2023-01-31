@@ -11,7 +11,6 @@
     <PackageReference Include="Microsoft.VisualStudioMac.Sdk" Version="17.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\TcpServer.Slim\src\TcpServer.Slim\TcpServer.Slim.csproj" />
     <ProjectReference Include="..\CodeReloader.Builder\CodeReloader.Builder.csproj" />
   </ItemGroup>
 </Project>

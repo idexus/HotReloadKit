@@ -14,8 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader.Builder", "Cod
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpServer.Slim", "..\libs\TcpServer.Slim\src\TcpServer.Slim\TcpServer.Slim.csproj", "{19B68F9F-5E8C-4EB9-96FF-0AC2C19C579F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader", "CodeReloader\CodeReloader.csproj", "{106CDB62-8BF3-4EB9-861B-D511CE111638}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadExample", "HotReloadExample\HotReloadExample.csproj", "{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}"
@@ -40,10 +38,6 @@ Global
 		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{19B68F9F-5E8C-4EB9-96FF-0AC2C19C579F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19B68F9F-5E8C-4EB9-96FF-0AC2C19C579F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19B68F9F-5E8C-4EB9-96FF-0AC2C19C579F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19B68F9F-5E8C-4EB9-96FF-0AC2C19C579F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -59,6 +53,5 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4} = {5FF57D46-0473-4C14-99E6-3DCAE1AB3270}
-		{19B68F9F-5E8C-4EB9-96FF-0AC2C19C579F} = {A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}
 	EndGlobalSection
 EndGlobal
