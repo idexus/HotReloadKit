@@ -2,8 +2,8 @@
 <Project Sdk="Microsoft.Net.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>CodeReloader.VSMac</RootNamespace>
-    <AssemblyName>CodeReloader.VSMac</AssemblyName>
+    <RootNamespace>HotReloadKit.VSMac</RootNamespace>
+    <AssemblyName>HotReloadKit.VSMac</AssemblyName>
 	<TargetFramework>net6.0</TargetFramework>
     <IsAddin>True</IsAddin>
   </PropertyGroup>
@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.VisualStudioMac.Sdk" Version="17.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CodeReloader.Builder\CodeReloader.Builder.csproj" />
+    <ProjectReference Include="..\HotReloadKit.Builder\HotReloadKit.Builder.csproj" />
     <ProjectReference Include="..\..\libs\SlimMessenger\src\SlimMessenger\SlimMessenger.csproj" />
   </ItemGroup>
 </Project>

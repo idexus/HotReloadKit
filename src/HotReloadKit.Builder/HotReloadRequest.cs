@@ -1,4 +1,4 @@
-﻿namespace HotReload.Builder;
+﻿namespace HotReloadKit.Builder;
 
 public class HotReloadRequest
 {

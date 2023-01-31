@@ -3,6 +3,6 @@
     <Runtime>
     </Runtime>
     <Extension path="/MonoDevelop/Ide/StartupHandlers">
-        <Class class="CodeReloader.VSMac.StartupHandler" />
+        <Class class="HotReloadKit.VSMac.StartupHandler" />
     </Extension>
 </ExtensionModel>

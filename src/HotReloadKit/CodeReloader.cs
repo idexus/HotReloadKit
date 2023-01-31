@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using SlimMessenger;
 
-namespace CodeReloadSupport;
+namespace HotReloadKit;
 
 class HotReloadRequest
 {

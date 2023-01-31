@@ -2,7 +2,7 @@
 #pragma warning disable CA1416
 
 
-namespace CodeReloader.VSMac
+namespace HotReloadKit.VSMac
 {
     using System;
     using System.Linq;
@@ -17,8 +17,8 @@ namespace CodeReloader.VSMac
     using MonoDevelop.Ide.TypeSystem;
     using MonoDevelop.Projects;
     using MonoDevelop.Core;
-    using HotReload.Builder;
     using System.Net.Sockets;
+    using HotReloadKit.Builder;
     using SlimMessenger;
 
     public class StartupHandler : CommandHandler

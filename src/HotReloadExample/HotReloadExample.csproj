@@ -14,11 +14,11 @@
 
     	<ItemGroup>
 		<Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
-	    <None Include="$(CompilerGeneratedFilesOutputPath)/CodeReloader.Generator/**/*.cs" />
+	    <None Include="$(CompilerGeneratedFilesOutputPath)/HotReloadKit.Generator/**/*.cs" />
     </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CodeReloader.Generator\CodeReloader.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\CodeReloader\CodeReloader.csproj" />
+    <ProjectReference Include="..\HotReloadKit.Generator\HotReloadKit.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\HotReloadKit\HotReloadKit.csproj" />
   </ItemGroup>
 </Project>

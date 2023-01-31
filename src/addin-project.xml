@@ -1,7 +1,7 @@
 <AddinProject appVersion="0.1.0">
 	<Project>
-		<AddinFile>CodeReloader.VSMac/bin/Debug/net7.0/CodeReloader.dll</AddinFile>
-		<BuildFile>CodeReloader.sln</BuildFile>
+		<AddinFile>HotReloadKit.VSMac/bin/Debug/net7.0/HotReloadKit.dll</AddinFile>
+		<BuildFile>HotReloadKit.sln</BuildFile>
 		<BuildConfiguration>Debug</BuildConfiguration>
 	</Project>
 </AddinProject>

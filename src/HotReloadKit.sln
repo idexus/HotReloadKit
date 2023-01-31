@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader.VSMac", "CodeReloader.VSMac\CodeReloader.VSMac.csproj", "{54D3A304-373C-47E1-B83A-97AA0A756627}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.VSMac", "HotReloadKit.VSMac\HotReloadKit.VSMac.csproj", "{54D3A304-373C-47E1-B83A-97AA0A756627}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B360DFD-2659-4B06-980A-B8A89DFDE9BE}"
 	ProjectSection(SolutionItems) = preProject
@@ -10,15 +10,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader.Builder", "CodeReloader.Builder\CodeReloader.Builder.csproj", "{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Builder", "HotReloadKit.Builder\HotReloadKit.Builder.csproj", "{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader", "CodeReloader\CodeReloader.csproj", "{106CDB62-8BF3-4EB9-861B-D511CE111638}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit", "HotReloadKit\HotReloadKit.csproj", "{106CDB62-8BF3-4EB9-861B-D511CE111638}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadExample", "HotReloadExample\HotReloadExample.csproj", "{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader.Generator", "CodeReloader.Generator\CodeReloader.Generator.csproj", "{AEE60C08-3FC7-4D80-AF38-A0D427097F93}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Generator", "HotReloadKit.Generator\HotReloadKit.Generator.csproj", "{AEE60C08-3FC7-4D80-AF38-A0D427097F93}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimMessenger", "..\libs\SlimMessenger\src\SlimMessenger\SlimMessenger.csproj", "{987B1A54-BDC0-4253-A224-6ED52CE1C6FA}"
 EndProject
