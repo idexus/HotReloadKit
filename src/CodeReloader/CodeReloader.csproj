@@ -6,4 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\TcpServer.Slim\src\TcpServer.Slim\TcpServer.Slim.csproj" />
+  </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@ using MonoDevelop.Projects;
 using MonoDevelop.Core;
 using HotReload.Builder;
 using TcpServer.Slim;
+using System.Net.Sockets;
 
 
 namespace CodeReloader.VSMac
@@ -31,6 +32,8 @@ namespace CodeReloader.VSMac
         // private
 
         TcpServerSlim tcpServer;
+        TcpClientSlim tcpClient;
+
         DotNetProject memActiveProject = null;
         List<string> changedFilePaths = new List<string>();
 
@@ -63,10 +66,20 @@ namespace CodeReloader.VSMac
             tcpServer.Start();
         }
 
+        void StopTcpServer()
+        {
+            tcpServer.Stop();
+            tcpClient = null;
+        }
+
         private void Server_ClientConnected(TcpClientSlim client)
         {
-            client.DataReceived += Client_DataReceived; ;
-            Console.WriteLine($"Client connected: {client.Guid}");
+            if (tcpClient == null)
+            {
+                tcpClient = client;
+                client.DataReceived += Client_DataReceived; ;
+                Console.WriteLine($"Client connected: {client.Guid}");
+            }
         }
 
         private void Client_DataReceived(TcpClientSlim client, string message)
@@ -77,12 +90,18 @@ namespace CodeReloader.VSMac
             {
                 await semaphore.WaitAsync();
 
-                var configuration = IdeApp.Workspace.ActiveConfiguration;
-                var dllName = ActiveProject.GetOutputFileName(configuration).FileNameWithoutExtension;
+                try
+                {
+                    var hotReloadRequest = JsonSerializer.Deserialize<HotReloadRequest>(message);
+                    await CompileAndEmitChanges(client, hotReloadRequest);
+                    changedFilePaths.Clear();
+                }
+#pragma warning disable CS0168
+                catch (Exception ex)
+                {
 
-                await CompileAndEmitChanges(dllName, changedFilePaths);
-                changedFilePaths.Clear();
-
+                }
+#pragma warning restore CS0168
                 semaphore.Release();
             });
         }
@@ -107,74 +126,76 @@ namespace CodeReloader.VSMac
 
         string GetFrameworkShortName()
         {
-            dynamic dynamic_target = IdeApp.Workspace.ActiveExecutionTarget;
-            return dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
+            try
+            {
+                dynamic dynamic_target = IdeApp.Workspace.ActiveExecutionTarget;
+                return dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
+            }
+            catch { }
+            return null;
+        }
+
+        string GetAssemblyName()
+        {
+            var configuration = IdeApp.Workspace.ActiveConfiguration;
+            return ActiveProject.GetOutputFileName(configuration).FileNameWithoutExtension;
         }
 
         string GetDllOutputhPath(string activeProjectName)
         {
-            var basePath = ActiveProject.MSBuildProject.BaseDirectory;
+            try
+            {
+                var basePath = ActiveProject.MSBuildProject.BaseDirectory;
 
-            var configuration = IdeApp.Workspace.ActiveConfiguration;
-            var configurationName = configuration.ToString();
+                var configuration = IdeApp.Workspace.ActiveConfiguration;
+                var configurationName = configuration.ToString();
 
-            dynamic dynamic_target = IdeApp.Workspace.ActiveExecutionTarget;
-            string frameworkShortName = dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
-            string runtimeIdentifier = dynamic_target.RuntimeIdentifier; // "maccatalyst-x64"
+                dynamic dynamic_target = IdeApp.Workspace.ActiveExecutionTarget;
+                string frameworkShortName = dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
+                string runtimeIdentifier = dynamic_target.RuntimeIdentifier; // "maccatalyst-x64"
 
-            var runtimeTail = !string.IsNullOrEmpty(runtimeIdentifier) ? $"/{runtimeIdentifier}" : "";
+                var runtimeTail = !string.IsNullOrEmpty(runtimeIdentifier) ? $"/{runtimeIdentifier}" : "";
 
-            return $"{basePath}/bin/{configurationName}/{frameworkShortName}{runtimeTail}/{activeProjectName}.dll";
+                return $"{basePath}/bin/{configurationName}/{frameworkShortName}{runtimeTail}/{activeProjectName}.dll";
+            }
+            catch { }
+            return null;
         }
 
-        async Task CompileAndEmitChanges(string activeProjectName, IEnumerable<string> changedFilePaths)
+        async Task CompileAndEmitChanges(TcpClientSlim client, HotReloadRequest hotReloadRequest)
         {
             try
             {
                 asseblyVersion++;
 
-                var dllOutputhPath = GetDllOutputhPath(activeProjectName);
+                var dllName = GetAssemblyName();
+                var dllOutputhPath = GetDllOutputhPath(dllName);
                 var frameworkShortName = GetFrameworkShortName();
 
-                using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", activeProjectName, PipeDirection.InOut))
+                // ------- compilation ---------
+
+                var typeService = await Runtime.GetService<TypeSystemService>();
+                var solution = typeService.Workspace.CurrentSolution;
+                var projects = solution.Projects;
+                var activeProject = solution.Projects.FirstOrDefault(e => e.AssemblyName.Equals(dllName) && (frameworkShortName == null || e.Name.Contains(frameworkShortName)));
+
+                var codeCompilation = new CodeCompilation
                 {
-                    // pipe connection
-                    await pipeClient.ConnectAsync();
+                    HotReloadRequest = hotReloadRequest,
+                    Solution = solution,
+                    Project = activeProject,
+                    DllOutputhPath = dllOutputhPath,
+                    ChangedFilePaths = changedFilePaths
+                };
 
-                    // ------- reequest types ---------
+                await codeCompilation.Compile();
 
-                    var streamReader = new StreamReader(pipeClient);
-                    var jsonData = await streamReader.ReadLineAsync();
-                    var hotReloadRequest = JsonSerializer.Deserialize<HotReloadRequest>(jsonData);
+                // ------- send data assembly ---------
 
-                    // ------- compilation ---------
-
-                    var typeService = await Runtime.GetService<TypeSystemService>();
-                    var solution = typeService.Workspace.CurrentSolution;
-                    var projects = solution.Projects;
-                    var activeProject = solution.Projects.FirstOrDefault(e => e.AssemblyName.Equals(activeProjectName) && e.Name.Contains(frameworkShortName));
-
-                    var codeCompilation = new CodeCompilation
-                    {
-                        HotReloadRequest = hotReloadRequest,
-                        Solution = solution,
-                        Project = activeProject,
-                        DllOutputhPath = dllOutputhPath,
-                        ChangedFilePaths = changedFilePaths
-                    };
-
-                    await codeCompilation.Compile();
-
-                    // ------- send data assembly ---------
-
-                    var streamWriter = new StreamWriter(pipeClient);
-                    streamWriter.AutoFlush = true;
-
-                    await codeCompilation.EmitJsonDataAsync(async jsonData =>
-                    {
-                        await streamWriter.WriteLineAsync(jsonData);
-                    });
-                }
+                await codeCompilation.EmitJsonDataAsync(async jsonData =>
+                {
+                    await client.WriteAsync(jsonData);
+                });
             }
 #pragma warning disable CS0168
             catch (Exception ex)
@@ -193,6 +214,11 @@ namespace CodeReloader.VSMac
                     .Select(e => e.ProjectFile.FilePath.FullPath.ToString());
 
             changedFilePaths.AddRange(lastChangedFiles);
+
+            var assemblyName = GetAssemblyName();
+            var reloadToken = $@"<<|hotreload|{assemblyName}|hotreload|>>";
+
+            await tcpClient?.WriteAsync(reloadToken);
 
             semaphore.Release();
         }

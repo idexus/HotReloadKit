@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpServer.Slim", "..\libs\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader", "CodeReloader\CodeReloader.csproj", "{106CDB62-8BF3-4EB9-861B-D511CE111638}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadExample", "HotReloadExample\HotReloadExample.csproj", "{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeReloader.Generator", "CodeReloader.Generator\CodeReloader.Generator.csproj", "{AEE60C08-3FC7-4D80-AF38-A0D427097F93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +48,14 @@ Global
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4} = {5FF57D46-0473-4C14-99E6-3DCAE1AB3270}

@@ -5,11 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotReload.Builder;
 
-public class HotReloadRequest
-{
-    public string[] TypeNames { get; set; }
-}
-
 public class CodeCompilation
 {
     class HotReloadData
@@ -46,6 +41,8 @@ public class CodeCompilation
     {
         // ------ Microsoft.CodeAnalysis projects ------
 
+        DllOutputhPath = DllOutputhPath ?? Project.OutputFilePath;
+
         var referencedProjects = Project.ProjectReferences?.Select(e => Solution.Projects.FirstOrDefault(x => x.Id == e.ProjectId));
         var generators = Project.AnalyzerReferences.SelectMany(e => e.GetGeneratorsForAllLanguages());
         var includedProjects = referencedProjects?.ToList() ?? new List<Microsoft.CodeAnalysis.Project>();
@@ -70,9 +67,12 @@ public class CodeCompilation
                 .Select(e => e.ToString())
                 .Distinct()
                 .ToList();
-        var usingsText = string.Join("\n", usings);
-        var usingsSyntaxTree = CSharpSyntaxTree.ParseText(usingsText);
-        syntaxTreeList.Add(usingsSyntaxTree);
+        if (usings.Count > 0)
+        {
+            var usingsText = string.Join("\n", usings);
+            var usingsSyntaxTree = CSharpSyntaxTree.ParseText(usingsText);
+            syntaxTreeList.Add(usingsSyntaxTree);
+        }
 
         // collect changed and requested file paths
         var changedAndRequestedFilePaths = compilation.SyntaxTrees
@@ -103,7 +103,6 @@ public class CodeCompilation
         syntaxTreeList.AddRange(partialSyntaxTrees);
 
         // --------- metadata reference ---------
-
         List<MetadataReference> metadataReferences = new List<MetadataReference>();
         metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(DllOutputhPath)));
         metadataReferences.AddRange(compilation.References);
@@ -141,7 +140,6 @@ public class CodeCompilation
             }
         }
     }
-
 
     // ------------------------------
     // --------- helpers ------------
