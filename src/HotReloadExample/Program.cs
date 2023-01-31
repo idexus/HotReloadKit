@@ -25,12 +25,12 @@ class Program
     }
 }
 
-class Assd
-{
+class rrrrrrrrsss
+{  
       
 } 
 
-class B
+class B 
 { 
      
 }

@@ -28,6 +28,7 @@ namespace CodeReloader.VSMac
 
         static SemaphoreSlim semaphore = new SemaphoreSlim(1);
         static int asseblyVersion = 0;
+        static DateTime beginTime;
 
         // private
 
@@ -49,13 +50,20 @@ namespace CodeReloader.VSMac
 
         void ProjectOperations_BeforeStartProject(object sender, EventArgs e)
         {
+            beginTime = DateTime.Now;
             StartTcpServer();
             StartHotReloadSession();
+
+            Task.Run(async () =>
+            {
+                await Task.Delay(1000);
+                await IdeServices.ProjectOperations.CurrentRunOperation.Task;
+                StopTcpServer();
+            });
         }
 
         void StartTcpServer()
         {
-
             tcpServer = new TcpServerSlim();
 
             tcpServer.ServerStarted += server => Console.WriteLine($"Server started");
@@ -69,17 +77,13 @@ namespace CodeReloader.VSMac
         void StopTcpServer()
         {
             tcpServer.Stop();
-            tcpClient = null;
         }
 
         private void Server_ClientConnected(TcpClientSlim client)
         {
-            if (tcpClient == null)
-            {
-                tcpClient = client;
-                client.DataReceived += Client_DataReceived; ;
-                Console.WriteLine($"Client connected: {client.Guid}");
-            }
+            tcpClient = client;
+            client.DataReceived += Client_DataReceived; ;
+            Console.WriteLine($"Client connected: {client.Guid}");
         }
 
         private void Client_DataReceived(TcpClientSlim client, string message)
@@ -102,6 +106,8 @@ namespace CodeReloader.VSMac
 
                 }
 #pragma warning restore CS0168
+
+                beginTime = DateTime.Now;
                 semaphore.Release();
             });
         }
@@ -205,22 +211,30 @@ namespace CodeReloader.VSMac
 #pragma warning restore CS0168
         }
 
-        async void ActiveProject_FileChangedInProject(object sender, ProjectFileEventArgs args)
+        const double timeSpanBetweenCompilations = 1000;
+        void ActiveProject_FileChangedInProject(object sender, ProjectFileEventArgs args)
         {
-            await semaphore.WaitAsync();
+            var lapsedTime = DateTime.Now.Subtract(beginTime).TotalMilliseconds;
+            if (lapsedTime < timeSpanBetweenCompilations) return;
 
-            var lastChangedFiles =
-                args.Where(e => !e.ProjectFile.FilePath.FullPath.ToString().Contains(".g.cs"))
-                    .Select(e => e.ProjectFile.FilePath.FullPath.ToString());
+            Task.Run(async () =>
+            {
+                await semaphore.WaitAsync();
 
-            changedFilePaths.AddRange(lastChangedFiles);
+                var lastChangedFiles =
+                    args.Where(e => !e.ProjectFile.FilePath.FullPath.ToString().Contains(".g.cs"))
+                        .Select(e => e.ProjectFile.FilePath.FullPath.ToString());
 
-            var assemblyName = GetAssemblyName();
-            var reloadToken = $@"<<|hotreload|{assemblyName}|hotreload|>>";
+                changedFilePaths.AddRange(lastChangedFiles);
 
-            await tcpClient?.WriteAsync(reloadToken);
+                var assemblyName = GetAssemblyName();
+                var reloadToken = $@"<<|hotreload|{assemblyName}|hotreload|>>";
 
-            semaphore.Release();
+                await tcpClient?.WriteAsync(reloadToken);
+
+                beginTime = DateTime.Now;
+                semaphore.Release();
+            });
         }
     }
 }
