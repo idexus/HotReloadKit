@@ -1,6 +1,6 @@
-# CodeReloader
+# HotReloadKit
 
-Hot Reload plugin for C# projects.
+Hot Reload Kit for C# projects.
 
 # License
 
