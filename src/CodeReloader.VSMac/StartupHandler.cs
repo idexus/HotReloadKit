@@ -1,27 +1,26 @@
 ﻿
-
 #pragma warning disable CA1416
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipes;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Text.Json;
-using MonoDevelop.Components.Commands;
-using MonoDevelop.Ide;
-using MonoDevelop.Ide.TypeSystem;
-using MonoDevelop.Projects;
-using MonoDevelop.Core;
-using HotReload.Builder;
-using TcpServer.Slim;
-using System.Net.Sockets;
 
 
 namespace CodeReloader.VSMac
 {
+    using System;
+    using System.Linq;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.IO.Pipes;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Text.Json;
+    using MonoDevelop.Components.Commands;
+    using MonoDevelop.Ide;
+    using MonoDevelop.Ide.TypeSystem;
+    using MonoDevelop.Projects;
+    using MonoDevelop.Core;
+    using HotReload.Builder;
+    using System.Net.Sockets;
+    using TcpServerSlim;
+
     public class StartupHandler : CommandHandler
     {
         // static memnbers

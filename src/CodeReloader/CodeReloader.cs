@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using TcpServer.Slim;
+using TcpServerSlim;
 
 namespace CodeReloadSupport;
 
