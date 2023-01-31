@@ -12,7 +12,7 @@ class Program
         CodeReloader.Init<Program>(HotReloadSupport.IdeIPs);
         CodeReloader.RequestedTypeNamesHandler = () =>
         {
-            return new string[] { "" };
+            return new string[] { "HotReloadExample.MyClass" };
         };
         CodeReloader.UpdateApplication = types =>
         {
@@ -24,18 +24,18 @@ class Program
         Console.ReadLine();
     }
 }
-
-class Test
-{  
-      
-} 
-
-class A
+   
+class TestS
+{ 
+   
+}  
+ 
+class ABC
 { 
      
 }
 
-class B
+class BC
 {
  
 } 

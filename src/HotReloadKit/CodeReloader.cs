@@ -20,47 +20,60 @@ class HotReloadData
 
 public static class CodeReloader
 {
-    public const int DefaultServerPort = 9988;
+    // public
+
     public const int DefaultTimeout = 1000;
 
     public static Action<Type[]>? UpdateApplication { get; set; }
     public static Func<string[]>? RequestedTypeNamesHandler { get; set; }
 
+    // private
+
+    const string serverToken = "<<HotReloadKit>>";
+
+    static int[] serverPorts = new int[] { 5088, 5089, 50888, 50889 };
     static Type? projectType;
 
-    public static void Init<T>(IPAddress[] serverIPs, int serverPort = DefaultServerPort, int timeout = DefaultTimeout)
+    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout)
     {
         projectType = typeof(T);
-        Task.Run(async () =>
-        {
-            var client = new SlimClient();
-
-            client.DataReceived += Client_DataReceived;
-            client.ClientConnected += client => Console.WriteLine("Hot reload connected");
-            client.ClientDisconnected += client => Console.WriteLine("Hot reload disconnected");
-
-            try
-            {
-                await client.Connect(serverIPs);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        });
+        _ = ConnectAsync(serverIPs, timeout);
     }
 
-    static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-    static void Client_DataReceived(SlimClient client, string message)
+    static async Task ConnectAsync(IPAddress[] serverIPs, int timeout = DefaultTimeout)
     {
-        Task.Run(async () =>
-        {
-            await semaphoreSlim.WaitAsync();
-            try
-            {
-                var assemblyName = projectType?.Assembly.GetName().Name ?? "----";
-                var reloadToken = $@"<<|hotreload|{assemblyName}|hotreload|>>";
+        await Task.Delay(1000);
 
+        var client = new SlimClient();
+
+        client.ClientDisconnected += client => Console.WriteLine("Hot reload disconnected");
+        client.ConnectedToServerEndPoint += (bool success, IPAddress serverIP, int serverPort)
+            => Console.WriteLine($"Hot reload connected to the end point: {(success ? "YES" : "NO")} address: {serverIP} port: {serverPort}");
+
+        try
+        {
+            await client.Connect(serverIPs, serverPorts, timeout);
+            var readServerToken = await client.ReadAsync();
+            if (readServerToken != serverToken) client.Disconnect();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        _ = ClientRunLoop(client);
+    }
+
+    static async Task ClientRunLoop(SlimClient client)
+    {
+        var projectAssemblyName = projectType?.Assembly.GetName().Name ?? "----";
+        var reloadToken = $@"<<|hotreload|{projectAssemblyName}|hotreload|>>";
+
+        try
+        {
+            while (client.IsConnected)
+            {
+                var message = await client.ReadAsync();
                 if (message == reloadToken)
                 {
                     string[] requestedTypeNames = RequestedTypeNamesHandler?.Invoke() ?? Array.Empty<string>();
@@ -83,14 +96,12 @@ public static class CodeReloader
                     UpdateApplication?.Invoke(typeList.ToArray());
                 }
             }
+        }
 #pragma warning disable CS0168
-            catch (Exception ex)
-            {
+        catch (Exception ex)
+        {
 
-            }
+        }
 #pragma warning restore CS0168
-
-            semaphoreSlim.Release();
-        });
     }
 }

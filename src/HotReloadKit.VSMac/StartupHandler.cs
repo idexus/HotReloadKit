@@ -23,6 +23,8 @@ namespace HotReloadKit.VSMac
 
     public class StartupHandler : CommandHandler
     {
+        static int[] hotReloadServerPorts = new int[] { 5088, 5089, 50888, 50889 };
+
         // static memnbers
 
         static SemaphoreSlim semaphore = new SemaphoreSlim(1);
@@ -30,6 +32,8 @@ namespace HotReloadKit.VSMac
         static DateTime beginTime;
 
         // private
+
+        const string serverToken = "<<HotReloadKit>>";
 
         SlimServer tcpServer;
         SlimClient tcpClient;
@@ -63,52 +67,67 @@ namespace HotReloadKit.VSMac
 
         void StartTcpServer()
         {
-            tcpServer = new SlimServer();
+            foreach(var port in hotReloadServerPorts)
+            {
+                try
+                {
+                    tcpServer = new SlimServer(port);
 
-            tcpServer.ServerStarted += server => Console.WriteLine($"Server started");
-            tcpServer.ServerStopped += server => Console.WriteLine($"Server stopped");
-            tcpServer.ClientConnected += Server_ClientConnected;
-            tcpServer.ClientDisconnected += client => Console.WriteLine($"Client disconnected: {client.Guid}");
+                    tcpServer.ServerStarted += server => Console.WriteLine($"Server started");
+                    tcpServer.ServerStopped += server => Console.WriteLine($"Server stopped");
+                    tcpServer.ClientConnected += Server_ClientConnected;
+                    tcpServer.ClientDisconnected += client => Console.WriteLine($"Client disconnected: {client.Guid}");
 
-            tcpServer.Start();
+                    tcpServer.Start();
+
+                    Console.WriteLine($"HotReloadKit Server started, port: {port}");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    tcpServer?.Stop();
+                }
+            }
         }
 
         void StopTcpServer()
         {
-            tcpServer.Stop();
+            tcpServer?.Stop();
         }
 
-        private void Server_ClientConnected(SlimClient client)
+        void Server_ClientConnected(SlimClient client)
         {
-            tcpClient = client;
-            client.DataReceived += Client_DataReceived; ;
             Console.WriteLine($"Client connected: {client.Guid}");
+            tcpClient = client;
+            _ = ClientRunLoop(client);
         }
 
-        private void Client_DataReceived(SlimClient client, string message)
+        async Task ClientRunLoop(SlimClient client)
         {
-            Console.WriteLine($@"Client: {client.Guid}, data received");
-
-            Task.Run(async () =>
+            await client.WriteAsync(serverToken);
+            await Task.Delay(500);
+            while (client.IsConnected)
             {
-                await semaphore.WaitAsync();
-
                 try
                 {
+                    var message = await client.ReadAsync();
                     var hotReloadRequest = JsonSerializer.Deserialize<HotReloadRequest>(message);
+
+                    await semaphore.WaitAsync();
+
                     await CompileAndEmitChanges(client, hotReloadRequest);
                     changedFilePaths.Clear();
                 }
-#pragma warning disable CS0168
                 catch (Exception ex)
                 {
-
+                    Console.WriteLine(ex.Message);
                 }
-#pragma warning restore CS0168
-
-                beginTime = DateTime.Now;
-                semaphore.Release();
-            });
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
         }
 
         void StartHotReloadSession()
@@ -202,21 +221,25 @@ namespace HotReloadKit.VSMac
                     await client.WriteAsync(jsonData);
                 });
             }
-#pragma warning disable CS0168
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
-#pragma warning restore CS0168
         }
 
-        const double timeSpanBetweenCompilations = 1000;
+        const double timeSpanBetweenCompilations = 2000;
         void ActiveProject_FileChangedInProject(object sender, ProjectFileEventArgs args)
         {
             var lapsedTime = DateTime.Now.Subtract(beginTime).TotalMilliseconds;
+            beginTime = DateTime.Now;
             if (lapsedTime < timeSpanBetweenCompilations) return;
 
-            Task.Run(async () =>
+            _ = FileChanged(args);
+        }
+
+        async Task FileChanged(ProjectFileEventArgs args)
+        {
+            try
             {
                 await semaphore.WaitAsync();
 
@@ -230,10 +253,15 @@ namespace HotReloadKit.VSMac
                 var reloadToken = $@"<<|hotreload|{assemblyName}|hotreload|>>";
 
                 await tcpClient?.WriteAsync(reloadToken);
-
-                beginTime = DateTime.Now;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
                 semaphore.Release();
-            });
+            }
         }
     }
 }
