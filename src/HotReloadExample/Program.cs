@@ -25,17 +25,17 @@ class Program
     }
 }
    
-class TestS
-{ 
-   
+class Testss
+{    
+    
 }  
- 
-class ABC
+   
+class ABC 
 { 
-     
+      
 }
 
 class BC
 {
  
-} 
+}    
