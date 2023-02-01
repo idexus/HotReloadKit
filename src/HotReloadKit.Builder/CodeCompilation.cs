@@ -115,6 +115,8 @@ public class CodeCompilation
             CSharpCompilation.Create(outputAssemblyName, syntaxTreeList, metadataReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
+        // --------- source genrators -----------
+
         var generatorDriver = CSharpGeneratorDriver.Create(generators);
         generatorDriver.RunGeneratorsAndUpdateCompilation(newCompilationBeforeGenerators, out newCompilation, out var diagnostics);
     }

@@ -25,17 +25,17 @@ class Program
     }
 }  
          
-class OKOKOK
+class A
 {           
          
 }    
     
-class ABC
+class B
 {  
       
 }
 
-class BC   
+class C   
 {
  
 }    
