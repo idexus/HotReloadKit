@@ -23,7 +23,7 @@ namespace HotReloadKit.VSMac
 
     public class StartupHandler : CommandHandler
     {
-        static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 50888 };
+        static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
 
         // static memnbers
 
@@ -33,7 +33,6 @@ namespace HotReloadKit.VSMac
 
         // private
 
-        const string serverToken = "<<HotReloadKit>>";
         readonly List<string> changedFilePaths = new List<string>();
         readonly Dictionary<string, DateTime> modificationDateTimeDict = new Dictionary<string, DateTime>();
 
@@ -77,7 +76,7 @@ namespace HotReloadKit.VSMac
 
                     hotReloadServer.Start();
 
-                    Console.WriteLine($"HotReloadKit Server started, port: {port}");
+                    Console.WriteLine($"HotReloadKit tcp port: {port}");
                     break;
                 }
                 catch (Exception ex)
@@ -110,7 +109,8 @@ namespace HotReloadKit.VSMac
             lockSemaphore.Release();
 
             // send server token
-            await Task.Delay(1000);
+            var assemblyName = GetAssemblyName();
+            var serverToken = $@"<<|HotReloadKit|{assemblyName}|connect|>>";
             await client.WriteAsync(serverToken);
 
             StartHotReloadSession();
@@ -122,8 +122,7 @@ namespace HotReloadKit.VSMac
                 {
                     await changedFilesSemaphore.WaitAsync();
 
-                    var assemblyName = GetAssemblyName();
-                    var reloadToken = $@"<<|hotreload|{assemblyName}|hotreload|>>";
+                    var reloadToken = $@"<<|HotReloadKit|{assemblyName}|hotreload|>>";
 
                     await client?.WriteAsync(reloadToken);
 
@@ -227,7 +226,6 @@ namespace HotReloadKit.VSMac
                         DllOutputhPath = dllOutputhPath,
                         ChangedFilePaths = changedFilePaths.ToList()
                     };
-                    changedFilePaths.Clear();
                     lockSemaphore.Release();
 
                     await codeCompilation.Compile();
@@ -261,6 +259,7 @@ namespace HotReloadKit.VSMac
                         .Select(e => e.ProjectFile.FilePath.FullPath.ToString()).ToList();
 
                 await lockSemaphore.WaitAsync();
+                var changed = false;
                 foreach (var file in lastChangedFiles)
                 {
                     modificationDateTimeDict.TryGetValue(file, out var lastDateTime);
@@ -270,11 +269,12 @@ namespace HotReloadKit.VSMac
 
                     if (!changedFilePaths.Contains(file) && lastDateTime != actualDateTime)
                     {
+                        changed = true;
                         changedFilePaths.Add(file);
                         modificationDateTimeDict[file] = actualDateTime;
                     }
                 }
-                if (changedFilePaths.Count() > 0) changedFilesSemaphore.Release();
+                if (changed) changedFilesSemaphore.Release();
                 lockSemaphore.Release();
             }
             catch (Exception ex)

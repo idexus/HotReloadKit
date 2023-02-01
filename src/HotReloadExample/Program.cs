@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Net;
-using System.Threading.Tasks;
 using HotReloadKit;
 
 namespace HotReloadExample;
@@ -25,14 +23,14 @@ class Program
 class A
 {           
          
-}    
-    
+}     
+     
 class B
 {  
       
 }
 
-class C   
+class C 
 {
  
 }    
