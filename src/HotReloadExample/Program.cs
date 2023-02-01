@@ -10,10 +10,7 @@ class Program
     static void Main(string[] args)
     {
         CodeReloader.Init<Program>(HotReloadSupport.IdeIPs);
-        CodeReloader.RequestedTypeNamesHandler = () =>
-        {
-            return new string[] { "HotReloadExample.MyClass" };
-        };
+        CodeReloader.RequestedTypeNamesHandler = () => new string[] { "HotReloadExample.MyClass" };        
         CodeReloader.UpdateApplication = types =>
         {
             foreach (var type in types) 
