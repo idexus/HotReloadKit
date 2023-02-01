@@ -17,7 +17,6 @@ class HotReloadData
     public byte[]? PdbData { get; set; }
 }
 
-
 public static class CodeReloader
 {
     // public
@@ -31,7 +30,7 @@ public static class CodeReloader
 
     const string serverToken = "<<HotReloadKit>>";
 
-    static int[] serverPorts = new int[] { 5088, 5089, 50888, 50889 };
+    static int[] serverPorts = new int[] { 50888, 50889, 5088, 5089, 50888 };
     static Type? projectType;
 
     public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout)
@@ -46,9 +45,9 @@ public static class CodeReloader
 
         var client = new SlimClient();
 
-        client.ClientDisconnected += client => Console.WriteLine("Hot reload disconnected");
+        client.ClientDisconnected += client => Console.WriteLine("HotReloadKit - disconnected");
         client.ConnectedToServerEndPoint += (bool success, IPAddress serverIP, int serverPort)
-            => Console.WriteLine($"Hot reload connected to the end point: {(success ? "YES" : "NO")} address: {serverIP} port: {serverPort}");
+            => Console.WriteLine($"HotReloadKit - address: {serverIP} port: {serverPort} connected to the end point: {(success ? "YES" : "NO")}");
 
         try
         {
@@ -76,6 +75,8 @@ public static class CodeReloader
                 var message = await client.ReadAsync();
                 if (message == reloadToken)
                 {
+                    Console.WriteLine("HotReloadKit - hot reload requested");
+
                     string[] requestedTypeNames = RequestedTypeNamesHandler?.Invoke() ?? Array.Empty<string>();
                     var hotreloadRequest = new HotReloadRequest { TypeNames = requestedTypeNames };
                     var jsonRequest = JsonSerializer.Serialize(hotreloadRequest);

@@ -16,26 +16,26 @@ class Program
         };
         CodeReloader.UpdateApplication = types =>
         {
-            foreach (var type in types)
+            foreach (var type in types) 
                 Console.WriteLine(type.FullName);
         };
-        
+          
         Console.WriteLine("Hot Reload Test!");
         Console.ReadLine();
     }
-}
-   
-class Testss
-{    
-    
 }  
-   
-class ABC 
-{ 
+         
+class OKOKOK
+{           
+         
+}    
+    
+class ABC
+{  
       
 }
 
-class BC
+class BC   
 {
  
 }    

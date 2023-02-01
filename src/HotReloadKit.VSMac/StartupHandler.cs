@@ -23,28 +23,27 @@ namespace HotReloadKit.VSMac
 
     public class StartupHandler : CommandHandler
     {
-        static int[] hotReloadServerPorts = new int[] { 5088, 5089, 50888, 50889 };
+        static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 50888 };
 
         // static memnbers
 
-        static SemaphoreSlim listLockSemaphore = new SemaphoreSlim(1);
+        static SemaphoreSlim lockSemaphore = new SemaphoreSlim(1);
         static SemaphoreSlim changedFilesSemaphore = new SemaphoreSlim(0);
         static int asseblyVersion = 0;
-        static DateTime beginTime;
 
         // private
 
         const string serverToken = "<<HotReloadKit>>";
+        readonly List<string> changedFilePaths = new List<string>();
+        readonly Dictionary<string, DateTime> modificationDateTimeDict = new Dictionary<string, DateTime>();
 
         SlimServer hotReloadServer;
 
-        DotNetProject memActiveProject = null;
-        List<string> changedFilePaths = new List<string>();
+        DotNetProject activeProject
+            => (IdeApp.ProjectOperations.CurrentSelectedSolution?.StartupItem ??
+                IdeApp.ProjectOperations.CurrentSelectedBuildTarget) as DotNetProject;
 
-        DotNetProject ActiveProject
-            => (IdeApp.ProjectOperations.CurrentSelectedSolution?.StartupItem
-                ?? IdeApp.ProjectOperations.CurrentSelectedBuildTarget)
-                as DotNetProject;
+        DotNetProject memActiveProject = null;
 
         protected override void Run()
         {
@@ -52,10 +51,8 @@ namespace HotReloadKit.VSMac
         }
 
         void ProjectOperations_BeforeStartProject(object sender, EventArgs e)
-        {
-            beginTime = DateTime.Now;
+        {            
             StartTcpServer();
-            StartHotReloadSession();
 
             Task.Run(async () =>
             {
@@ -73,10 +70,10 @@ namespace HotReloadKit.VSMac
                 {
                     hotReloadServer = new SlimServer(port);
 
-                    hotReloadServer.ServerStarted += server => Console.WriteLine($"Server started");
-                    hotReloadServer.ServerStopped += server => Console.WriteLine($"Server stopped");
+                    hotReloadServer.ServerStarted += server => Console.WriteLine($"HotReloadKit server started");
+                    hotReloadServer.ServerStopped += server => Console.WriteLine($"HotReloadKit server stopped");
                     hotReloadServer.ClientConnected += Server_ClientConnected;
-                    hotReloadServer.ClientDisconnected += client => Console.WriteLine($"Client disconnected: {client.Guid}");
+                    hotReloadServer.ClientDisconnected += client => Console.WriteLine($"HotReloadKit client disconnected: {client.Guid}");
 
                     hotReloadServer.Start();
 
@@ -98,15 +95,27 @@ namespace HotReloadKit.VSMac
 
         void Server_ClientConnected(SlimClient client)
         {
-            Console.WriteLine($"Client connected: {client.Guid}");
+            Console.WriteLine($"HotReloadKit client connected: {client.Guid}");
             _ = ClientRunLoop(client);
         }
 
         async Task ClientRunLoop(SlimClient client)
         {
-            await Task.Delay(500);
-            await client.WriteAsync(serverToken);
             changedFilesSemaphore = new SemaphoreSlim(0);
+
+            // clear list
+            await lockSemaphore.WaitAsync();
+            modificationDateTimeDict.Clear();
+            changedFilePaths.Clear();
+            lockSemaphore.Release();
+
+            // send server token
+            await Task.Delay(1000);
+            await client.WriteAsync(serverToken);
+
+            StartHotReloadSession();
+
+            // client loop
             while (client.IsConnected)
             {
                 try
@@ -128,14 +137,17 @@ namespace HotReloadKit.VSMac
                     Console.WriteLine(ex.Message);
                 }
             }
+
+            StopHotReloadSession();
         }
 
         void StartHotReloadSession()
         {
-            if (ActiveProject != null && memActiveProject == null)
+            if (activeProject != null && memActiveProject == null)
             {
-                memActiveProject = ActiveProject;
+                memActiveProject = activeProject;
                 memActiveProject.FileChangedInProject += ActiveProject_FileChangedInProject;
+                Console.WriteLine($"HotReloadKit session started");
             }
         }
 
@@ -145,6 +157,7 @@ namespace HotReloadKit.VSMac
             {
                 memActiveProject.FileChangedInProject -= ActiveProject_FileChangedInProject;
                 memActiveProject = null;
+                Console.WriteLine($"HotReloadKit session stopped");
             }
         }
 
@@ -162,14 +175,14 @@ namespace HotReloadKit.VSMac
         string GetAssemblyName()
         {
             var configuration = IdeApp.Workspace.ActiveConfiguration;
-            return ActiveProject.GetOutputFileName(configuration).FileNameWithoutExtension;
+            return activeProject.GetOutputFileName(configuration).FileNameWithoutExtension;
         }
 
         string GetDllOutputhPath(string activeProjectName)
         {
             try
             {
-                var basePath = ActiveProject.MSBuildProject.BaseDirectory;
+                var basePath = activeProject.MSBuildProject.BaseDirectory;
 
                 var configuration = IdeApp.Workspace.ActiveConfiguration;
                 var configurationName = configuration.ToString();
@@ -203,7 +216,7 @@ namespace HotReloadKit.VSMac
                 var projects = solution.Projects;
                 var activeProject = solution.Projects.FirstOrDefault(e => e.AssemblyName.Equals(dllName) && (frameworkShortName == null || e.Name.Contains(frameworkShortName)));
 
-                await listLockSemaphore.WaitAsync();
+                await lockSemaphore.WaitAsync();
                 if (changedFilePaths.Count() > 0)
                 {
                     var codeCompilation = new CodeCompilation
@@ -215,7 +228,7 @@ namespace HotReloadKit.VSMac
                         ChangedFilePaths = changedFilePaths.ToList()
                     };
                     changedFilePaths.Clear();
-                    listLockSemaphore.Release();
+                    lockSemaphore.Release();
 
                     await codeCompilation.Compile();
 
@@ -233,11 +246,11 @@ namespace HotReloadKit.VSMac
             }
         }
 
-        const double timeSpanBetweenCompilations = 500;
         void ActiveProject_FileChangedInProject(object sender, ProjectFileEventArgs args)
         {
             _ = FileChanged(args);
         }
+
 
         async Task FileChanged(ProjectFileEventArgs args)
         {
@@ -247,26 +260,26 @@ namespace HotReloadKit.VSMac
                     args.Where(e => !e.ProjectFile.FilePath.FullPath.ToString().Contains(".g.cs"))
                         .Select(e => e.ProjectFile.FilePath.FullPath.ToString()).ToList();
 
-                await Task.Delay(100);
-
-                await listLockSemaphore.WaitAsync();
-                var changed = false;
+                await lockSemaphore.WaitAsync();
                 foreach (var file in lastChangedFiles)
-                    if (!changedFilePaths.Contains(file))
-                    {
-                        changed = true;
-                        changedFilePaths.Add(file);
-                    }
-                listLockSemaphore.Release();
+                {
+                    modificationDateTimeDict.TryGetValue(file, out var lastDateTime);
+                    var actualDateTime = File.GetLastWriteTime(file);
 
-                if (changed) changedFilesSemaphore.Release();
+                    Console.WriteLine($"HotReloadKit --FILE CHANGED-- {file} last: {lastDateTime} current: {actualDateTime}");
+
+                    if (!changedFilePaths.Contains(file) && lastDateTime != actualDateTime)
+                    {
+                        changedFilePaths.Add(file);
+                        modificationDateTimeDict[file] = actualDateTime;
+                    }
+                }
+                if (changedFilePaths.Count() > 0) changedFilesSemaphore.Release();
+                lockSemaphore.Release();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-            }
-            finally
-            {
             }
         }
     }
