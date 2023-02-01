@@ -12,6 +12,7 @@ namespace HotReloadKit.VSMac
     using System.Threading;
     using System.Threading.Tasks;
     using System.Text.Json;
+    using System.Diagnostics;
     using MonoDevelop.Components.Commands;
     using MonoDevelop.Ide;
     using MonoDevelop.Ide.TypeSystem;
@@ -69,19 +70,19 @@ namespace HotReloadKit.VSMac
                 {
                     hotReloadServer = new SlimServer(port);
 
-                    hotReloadServer.ServerStarted += server => Console.WriteLine($"HotReloadKit server started");
-                    hotReloadServer.ServerStopped += server => Console.WriteLine($"HotReloadKit server stopped");
+                    hotReloadServer.ServerStarted += server => Debug.WriteLine($"HotReloadKit server started");
+                    hotReloadServer.ServerStopped += server => Debug.WriteLine($"HotReloadKit server stopped");
                     hotReloadServer.ClientConnected += Server_ClientConnected;
-                    hotReloadServer.ClientDisconnected += client => Console.WriteLine($"HotReloadKit client disconnected: {client.Guid}");
+                    hotReloadServer.ClientDisconnected += client => Debug.WriteLine($"HotReloadKit client disconnected: {client.Guid}");
 
                     hotReloadServer.Start();
 
-                    Console.WriteLine($"HotReloadKit tcp port: {port}");
+                    Debug.WriteLine($"HotReloadKit tcp port: {port}");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.Message);
                     hotReloadServer?.Stop();
                 }
             }
@@ -94,7 +95,7 @@ namespace HotReloadKit.VSMac
 
         void Server_ClientConnected(SlimClient client)
         {
-            Console.WriteLine($"HotReloadKit client connected: {client.Guid}");
+            Debug.WriteLine($"HotReloadKit client connected: {client.Guid}");
             _ = ClientRunLoop(client);
         }
 
@@ -133,7 +134,7 @@ namespace HotReloadKit.VSMac
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.Message);
                 }
             }
 
@@ -146,7 +147,7 @@ namespace HotReloadKit.VSMac
             {
                 memActiveProject = activeProject;
                 memActiveProject.FileChangedInProject += ActiveProject_FileChangedInProject;
-                Console.WriteLine($"HotReloadKit session started");
+                Debug.WriteLine($"HotReloadKit session started");
             }
         }
 
@@ -156,7 +157,7 @@ namespace HotReloadKit.VSMac
             {
                 memActiveProject.FileChangedInProject -= ActiveProject_FileChangedInProject;
                 memActiveProject = null;
-                Console.WriteLine($"HotReloadKit session stopped");
+                Debug.WriteLine($"HotReloadKit session stopped");
             }
         }
 
@@ -240,7 +241,7 @@ namespace HotReloadKit.VSMac
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Debug.WriteLine(ex.Message);
             }
         }
 
@@ -259,15 +260,15 @@ namespace HotReloadKit.VSMac
                         .Select(e => e.ProjectFile.FilePath.FullPath.ToString()).ToList();
 
                 await lockSemaphore.WaitAsync();
-                var changed = false;
+                 var changed = false;
                 foreach (var file in lastChangedFiles)
                 {
                     modificationDateTimeDict.TryGetValue(file, out var lastDateTime);
                     var actualDateTime = File.GetLastWriteTime(file);
 
-                    Console.WriteLine($"HotReloadKit --FILE CHANGED-- {file} last: {lastDateTime} current: {actualDateTime}");
+                    Debug.WriteLine($"HotReloadKit --FILE CHANGED-- {file} last: {lastDateTime} current: {actualDateTime}");
 
-                    if (!changedFilePaths.Contains(file) && lastDateTime != actualDateTime)
+                    if (lastDateTime != actualDateTime)
                     {
                         changed = true;
                         changedFilePaths.Add(file);
@@ -279,7 +280,7 @@ namespace HotReloadKit.VSMac
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Debug.WriteLine(ex.Message);
             }
         }
     }

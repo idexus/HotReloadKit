@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Addin id="HotReloadKit.VSMac" version="0.3.0" namespace="HotReloadKit.VSMac" name="HotReloadKit.VSMac" author="Pawel Krzywdzinski" description="HotReloadKit.VSMac - Hot Reload for VS2022 for Mac" category="IDE extensions">
+<Addin id="HotReloadKit.VSMac" version="0.3.0.beta.1" namespace="HotReloadKit.VSMac" name="HotReloadKit.VSMac" author="Pawel Krzywdzinski" description="HotReloadKit.VSMac - Hot Reload for VS2022 for Mac" category="IDE extensions">
   <Runtime>
     <Import assembly="HotReloadKit.Builder.dll" />
     <Import assembly="HotReloadKit.VSMac.dll" />

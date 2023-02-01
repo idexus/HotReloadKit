@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
+using System.Diagnostics;
 using SlimMessenger;
 
 namespace HotReloadKit;
@@ -53,22 +54,25 @@ public static class CodeReloader
                 {
                     var client = new SlimClient();
 
-                    client.Disconnected += client => Console.WriteLine("HotReloadKit - disconnected");
+                    client.Disconnected += client => Debug.WriteLine("HotReloadKit - disconnected");
 
                     await client.Connect(serverIP, serverPort, timeout);
 
                     var readServerToken = await client.ReadAsync(DefaultTimeout);
                     if (readServerToken == serverToken)
                     {
-                        Console.WriteLine($"HotReloadKit - address: {serverIP.ToString()} port: {serverPort} success: YES");
+                        Console.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort}");
                         _ = ClientRunLoop(client);
                         return;
                     }
                     else
-                        throw new Exception();
+                        throw new Exception("HotReloadKit - wrong token");
+                }                
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
                 }
-                catch { }
-                Console.WriteLine($"HotReloadKit - address: {serverIP.ToString()} port: {serverPort} success: NO");
+                Debug.WriteLine($"HotReloadKit - address: {serverIP.ToString()} port: {serverPort} success: NO");
             }
         Console.WriteLine($"HotReloadKit - no connection to the IDE.");
     }
@@ -82,7 +86,7 @@ public static class CodeReloader
                 var message = await client.ReadAsync();
                 if (message == reloadToken)
                 {
-                    Console.WriteLine("HotReloadKit - hot reload requested");
+                    Debug.WriteLine("HotReloadKit - hot reload requested");
 
                     string[] requestedTypeNames = RequestedTypeNamesHandler?.Invoke() ?? Array.Empty<string>();
                     var hotreloadRequest = new HotReloadRequest { TypeNames = requestedTypeNames };
@@ -105,11 +109,9 @@ public static class CodeReloader
                 }
             }
         }
-#pragma warning disable CS0168
         catch (Exception ex)
         {
-
+            Debug.WriteLine(ex.Message);
         }
-#pragma warning restore CS0168
     }
 }
