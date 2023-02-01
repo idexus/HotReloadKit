@@ -61,7 +61,7 @@ public static class CodeReloader
                     var readServerToken = await client.ReadAsync(DefaultTimeout);
                     if (readServerToken == serverToken)
                     {
-                        Console.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort}");
+                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort}");
                         _ = ClientRunLoop(client);
                         return;
                     }
@@ -74,7 +74,7 @@ public static class CodeReloader
                 }
                 Debug.WriteLine($"HotReloadKit - address: {serverIP.ToString()} port: {serverPort} success: NO");
             }
-        Console.WriteLine($"HotReloadKit - no connection to the IDE.");
+        Debug.WriteLine($"HotReloadKit - no connection to the IDE.");
     }
 
     static async Task ClientRunLoop(SlimClient client)

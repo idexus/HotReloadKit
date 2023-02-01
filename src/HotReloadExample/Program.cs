@@ -19,9 +19,9 @@ class Program
     }
 }  
          
-class A 
+class A
 {             
-          
+         
 }        
      
 class B  

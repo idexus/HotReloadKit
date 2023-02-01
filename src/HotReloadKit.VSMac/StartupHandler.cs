@@ -191,7 +191,7 @@ namespace HotReloadKit.VSMac
                 string frameworkShortName = dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
                 string runtimeIdentifier = dynamic_target.RuntimeIdentifier; // "maccatalyst-x64"
 
-                var runtimeTail = !string.IsNullOrEmpty(runtimeIdentifier) ? $"/{runtimeIdentifier}" : "";
+                var runtimeTail = frameworkShortName.Contains("maccatalyst") && frameworkShortName.Contains("ios") ? $"/{runtimeIdentifier}" : "";
 
                 return $"{basePath}/bin/{configurationName}/{frameworkShortName}{runtimeTail}/{activeProjectName}.dll";
             }
