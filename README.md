@@ -27,7 +27,7 @@ class Program
 
 # VS2022 for Mac Extension
 
-Use `HotReloadKit.VSMac_0.3.0.mpack`
+Use `HotReloadKit.VSMac_0.3.0_beta.1.mpack`
 
 # Disclaimer
 

@@ -14,8 +14,7 @@ class Program
             foreach (var type in types) 
                 Console.WriteLine(type.FullName);
         };
-          
-        Console.WriteLine("Hot Reload Test!");
+
         Console.ReadLine();
     }
 }  
