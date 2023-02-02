@@ -23,17 +23,9 @@ class Program
         };
           
         ...
-
+        
     }
 }  
-```
-
-# Submodules
-
-This project uses git submodules.
-
-```
-git submodule update --init --recursive
 ```
 
 # VS2022 for Mac Extension
