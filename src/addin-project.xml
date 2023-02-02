@@ -1,4 +1,4 @@
-<AddinProject appVersion="0.3.0.beta.2">
+<AddinProject appVersion="0.3.0.beta.3">
 	<Project>
 		<AddinFile>HotReloadKit.VSMac/bin/Debug/net7.0/HotReloadKit.dll</AddinFile>
 		<BuildFile>HotReloadKit.sln</BuildFile>
