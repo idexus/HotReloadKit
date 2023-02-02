@@ -13,7 +13,7 @@ class Program
     {
         CodeReloader.Init<Program>(HotReloadSupport.IdeIPs);        
         
-        // aditional requested type names
+        // you can specify additional names of requested types
         CodeReloader.RequestedTypeNamesHandler = () => new string[] { "HotReloadExample.MyClass" };
 
         CodeReloader.UpdateApplication = types =>
@@ -27,6 +27,7 @@ class Program
     }
 }  
 ```
+
 # Submodules
 
 This project uses git submodules.
