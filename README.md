@@ -1,6 +1,6 @@
 # HotReloadKit
 
-Hot Reload Kit for C# projects for VS2022 for Mac
+Hot Reload Kit for VS2022 for Mac
 
 # Usage 
 
@@ -37,7 +37,7 @@ git submodule update --init --recursive
 
 # VS2022 for Mac Extension
 
-Use `HotReloadKit.VSMac_0.3.0_beta.1.mpack`
+Use `HotReloadKit.VSMac_0.3.0_beta.2.mpack`
 
 # Disclaimer
 

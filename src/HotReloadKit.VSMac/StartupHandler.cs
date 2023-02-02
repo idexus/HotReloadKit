@@ -20,7 +20,7 @@ namespace HotReloadKit.VSMac
     using MonoDevelop.Core;
     using System.Net.Sockets;
     using HotReloadKit.Builder;
-    using SlimMessenger;
+    using SlimTcpServer;
 
     public class StartupHandler : CommandHandler
     {

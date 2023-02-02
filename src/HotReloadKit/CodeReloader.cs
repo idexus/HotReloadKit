@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Diagnostics;
-using SlimMessenger;
+using SlimTcpServer;
 
 namespace HotReloadKit;
 

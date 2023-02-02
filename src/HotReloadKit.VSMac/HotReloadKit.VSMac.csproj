@@ -12,6 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HotReloadKit.Builder\HotReloadKit.Builder.csproj" />
-    <ProjectReference Include="..\..\libs\SlimMessenger\src\SlimMessenger\SlimMessenger.csproj" />
+    <ProjectReference Include="..\..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj" />
   </ItemGroup>
 </Project>
