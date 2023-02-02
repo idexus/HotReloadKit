@@ -39,6 +39,11 @@ git submodule update --init --recursive
 # VS2022 for Mac
 
 - extension [HotReloadKit.VSMac_0.3.0_beta.3.mpack](https://github.com/idexus/HotReloadKit/releases)
+- nuget
+
+```
+dotnet add package HotReloadKit --version 0.3.0-beta.3
+```
 
 # Disclaimer
 
