@@ -36,9 +36,9 @@ This project uses git submodules.
 git submodule update --init --recursive
 ```
 
-# VS2022 for Mac Extension
+# VS2022 for Mac
 
-- [HotReloadKit.VSMac_0.3.0_beta.2.mpack](https://github.com/idexus/HotReloadKit/releases)
+- extension [HotReloadKit.VSMac_0.3.0_beta.2.mpack](https://github.com/idexus/HotReloadKit/releases)
 
 # Disclaimer
 
