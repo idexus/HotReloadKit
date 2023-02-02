@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Addin id="HotReloadKit.VSMac" version="0.3.0.beta.1" namespace="HotReloadKit.VSMac" name="HotReloadKit.VSMac" author="Pawel Krzywdzinski" description="HotReloadKit.VSMac - Hot Reload for VS2022 for Mac" category="IDE extensions">
+<Addin id="HotReloadKit.VSMac" version="0.3.0.beta.2" namespace="HotReloadKit.VSMac" name="HotReloadKit.VSMac" author="Pawel Krzywdzinski" description="HotReloadKit.VSMac - Hot Reload for VS2022 for Mac" category="IDE extensions">
   <Runtime>
     <Import assembly="HotReloadKit.Builder.dll" />
     <Import assembly="HotReloadKit.VSMac.dll" />
@@ -13,7 +13,7 @@
     <Import assembly="Microsoft.CodeAnalysis.Workspaces.dll" />
     <Import assembly="Microsoft.NET.StringTools.dll" />
     <Import assembly="Microsoft.Win32.SystemEvents.dll" />
-    <Import assembly="SlimMessenger.dll" />
+    <Import assembly="SlimTcpServer.dll" />
     <Import assembly="System.CodeDom.dll" />
     <Import assembly="System.Composition.AttributedModel.dll" />
     <Import assembly="System.Composition.Convention.dll" />
