@@ -45,4 +45,4 @@ There is no official support. Use at your own risk.
 
 # License
 
-License MIT, Copyright (c) Pawel Krzywdzinski
+License MIT, Copyright (c) 2023 Pawel Krzywdzinski
