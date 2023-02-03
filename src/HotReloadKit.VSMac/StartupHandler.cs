@@ -68,14 +68,14 @@ namespace HotReloadKit.VSMac
             {
                 try
                 {
-                    hotReloadServer = new SlimServer(port);
+                    hotReloadServer = new SlimServer();
 
                     hotReloadServer.ServerStarted += server => Debug.WriteLine($"HotReloadKit server started");
                     hotReloadServer.ServerStopped += server => Debug.WriteLine($"HotReloadKit server stopped");
                     hotReloadServer.ClientConnected += Server_ClientConnected;
                     hotReloadServer.ClientDisconnected += client => Debug.WriteLine($"HotReloadKit client disconnected: {client.Guid}");
 
-                    hotReloadServer.Start();
+                    hotReloadServer.Start(port);
 
                     Debug.WriteLine($"HotReloadKit tcp port: {port}");
                     break;

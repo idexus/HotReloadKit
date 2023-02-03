@@ -22,7 +22,7 @@ class Program
 class A
 {             
          
-}       
+} 
      
 class B  
 {  

@@ -56,7 +56,7 @@ public static class CodeReloader
 
                     client.Disconnected += client => Debug.WriteLine("HotReloadKit - disconnected");
 
-                    await client.Connect(serverIP, serverPort, timeout);
+                    await client.Connect(serverIP, serverPort);
 
                     var readServerToken = await client.ReadAsync(DefaultTimeout);
                     if (readServerToken == serverToken)
