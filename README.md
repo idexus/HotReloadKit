@@ -30,8 +30,8 @@ class Program
 
 # VS2022 for Mac
 
-- extension [HotReloadKit mpack](https://github.com/idexus/HotReloadKit/releases)
-- nuget
+- [HotReloadKit extension mpack](https://github.com/idexus/HotReloadKit/releases)
+- nuget library
 
 ```
 dotnet add package HotReloadKit
