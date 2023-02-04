@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,13 +11,6 @@ namespace HotReloadKit.Builder
 {
     public class CodeCompilation
     {
-        class HotReloadData
-        {
-            public string[] TypeNames { get; set; }
-            public byte[] AssemblyData { get; set; }
-            public byte[] PdbData { get; set; }
-        }
-
         // -- static --
 
         static int asseblyVersion = 0;
@@ -126,7 +118,7 @@ namespace HotReloadKit.Builder
             generatorDriver.RunGeneratorsAndUpdateCompilation(newCompilationBeforeGenerators, out newCompilation, out var diagnostics);
         }
 
-        public async Task EmitJsonDataAsync(Func<string, Task> sendJsonData)
+        public async Task EmitJsonDataAsync(Func<HotReloadData, Task> sendData)
         {
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
@@ -141,9 +133,7 @@ namespace HotReloadKit.Builder
                         PdbData = pdbStream.GetBuffer()
                     };
 
-                    var json = JsonSerializer.Serialize(hotReloadData);
-
-                    await sendJsonData(json);
+                    await sendData(hotReloadData);
                 }
             }
         }

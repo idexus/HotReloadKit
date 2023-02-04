@@ -20,7 +20,7 @@ class Program
 }  
          
 class A
-{             
+{            
          
 } 
      
