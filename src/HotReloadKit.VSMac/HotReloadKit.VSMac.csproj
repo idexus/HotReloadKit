@@ -13,4 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HotReloadKit.Server\HotReloadKit.Server.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="SlimTcpServer" />
+  </ItemGroup>
 </Project>

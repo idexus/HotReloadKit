@@ -63,12 +63,11 @@ namespace HotReloadKit.VSMac
             hotReloadServer.HotReloadStarted += StartHotReloadSession;
             hotReloadServer.HotReloadStopped += StopHotReloadSession;
 
-            hotReloadServer.StartServer();
+            await hotReloadServer.StartServer();
 
             await Task.Delay(1000);
             await IdeServices.ProjectOperations.CurrentRunOperation.Task;
-            hotReloadServer.StopServer();
-            hotReloadServer = null;
+            await hotReloadServer.StopServer();
 
             sessionSemaphore.Release();
         }

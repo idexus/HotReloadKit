@@ -8,20 +8,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitignore = ..\.gitignore
 		addin-project.xml = addin-project.xml
 		..\README.md = ..\README.md
-		..\.gitmodules = ..\.gitmodules
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Builder", "HotReloadKit.Builder\HotReloadKit.Builder.csproj", "{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit", "HotReloadKit\HotReloadKit.csproj", "{106CDB62-8BF3-4EB9-861B-D511CE111638}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadExample", "HotReloadExample\HotReloadExample.csproj", "{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Generator", "HotReloadKit.Generator\HotReloadKit.Generator.csproj", "{AEE60C08-3FC7-4D80-AF38-A0D427097F93}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimTcpServer", "..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj", "{CB1C71C5-082A-422F-8510-911EF9B2C28F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Server", "HotReloadKit.Server\HotReloadKit.Server.csproj", "{768A49A3-63BE-47CF-9E59-C5279F9C2E17}"
 EndProject
@@ -39,10 +34,6 @@ Global
 		{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{106CDB62-8BF3-4EB9-861B-D511CE111638}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -55,27 +46,11 @@ Global
 		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEE60C08-3FC7-4D80-AF38-A0D427097F93}.Release|Any CPU.Build.0 = Release|Any CPU
-		{91A5C4B0-0139-4D89-8F24-E1AD10571F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91A5C4B0-0139-4D89-8F24-E1AD10571F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91A5C4B0-0139-4D89-8F24-E1AD10571F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91A5C4B0-0139-4D89-8F24-E1AD10571F54}.Release|Any CPU.Build.0 = Release|Any CPU
-		{987B1A54-BDC0-4253-A224-6ED52CE1C6FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{987B1A54-BDC0-4253-A224-6ED52CE1C6FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{987B1A54-BDC0-4253-A224-6ED52CE1C6FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{987B1A54-BDC0-4253-A224-6ED52CE1C6FA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CB1C71C5-082A-422F-8510-911EF9B2C28F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CB1C71C5-082A-422F-8510-911EF9B2C28F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CB1C71C5-082A-422F-8510-911EF9B2C28F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CB1C71C5-082A-422F-8510-911EF9B2C28F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{0CC4F76C-6BFF-40DE-A882-CA67DA844ED4} = {5FF57D46-0473-4C14-99E6-3DCAE1AB3270}
-		{91A5C4B0-0139-4D89-8F24-E1AD10571F54} = {A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}
-		{987B1A54-BDC0-4253-A224-6ED52CE1C6FA} = {A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}
-		{CB1C71C5-082A-422F-8510-911EF9B2C28F} = {A01AAF58-15A2-499B-85CD-1A8FF2DA84EF}
 	EndGlobalSection
 EndGlobal
