@@ -34,7 +34,7 @@ class Program
 - nuget
 
 ```
-dotnet add package HotReloadKit --version 0.3.0-beta.3
+dotnet add package HotReloadKit
 ```
 
 # Disclaimer
