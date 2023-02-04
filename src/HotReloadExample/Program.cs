@@ -24,12 +24,12 @@ class A
          
 } 
      
-class B  
+class B
 {  
-      
-} 
+    
+}
 
-class C 
+class C
 {
  
-}    
+}   

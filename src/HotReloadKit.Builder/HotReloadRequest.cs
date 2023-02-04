@@ -1,7 +1,8 @@
-﻿namespace HotReloadKit.Builder;
-
-public class HotReloadRequest
+﻿namespace HotReloadKit.Builder
 {
-    public string[] TypeNames { get; set; }
+    public class HotReloadRequest
+    {
+        public string[] TypeNames { get; set; }
+    }
 }
 
