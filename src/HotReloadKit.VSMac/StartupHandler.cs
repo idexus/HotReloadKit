@@ -21,7 +21,7 @@ namespace HotReloadKit.VSMac
     using System.Net.Sockets;
     using HotReloadKit.Builder;
     using SlimTcpServer;
-
+     
     public class StartupHandler : CommandHandler
     {
         static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
