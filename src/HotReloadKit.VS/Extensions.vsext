@@ -1,6 +1,6 @@
 {
-  "description": "Read about creating extension packs at https://aka.ms/vsextpack",
-  "version": "0.3.2.0",
+  "description": "HotReloadKit for VS",
+  "version": "0.4.0.0",
   "extensions": [
   ]
 }

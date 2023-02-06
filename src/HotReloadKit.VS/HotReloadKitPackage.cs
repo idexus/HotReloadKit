@@ -47,6 +47,7 @@ namespace HotReloadKit.VS
     /// </remarks>
     /// 
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(HotReloadKitPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
@@ -71,13 +72,9 @@ namespace HotReloadKit.VS
         #region Package Members
 
         DTE dte;
-        IVsDebugger vsDebugger;
-        IVsStatusbar statusBar;
 
-        SolutionEvents solutionEvents;
         DocumentEvents documentEvents;
         DebuggerEvents debuggerEvents;
-        BuildEvents buildEvents;
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -92,15 +89,10 @@ namespace HotReloadKit.VS
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-
             dte = (DTE)(await GetServiceAsync(typeof(DTE)));
-            vsDebugger = (IVsDebugger)(await GetServiceAsync(typeof(IVsDebugger)));
-            statusBar = (IVsStatusbar)(await GetServiceAsync(typeof(SVsStatusbar)));
 
-            solutionEvents = dte.Events.SolutionEvents;
             documentEvents = dte.Events.DocumentEvents;
             debuggerEvents = dte.Events.DebuggerEvents;
-            buildEvents = dte.Events.BuildEvents;
 
             debuggerEvents.OnEnterRunMode += DebuggerEvents_OnEnterRunMode;
             debuggerEvents.OnEnterBreakMode += DebuggerEvents_OnEnterBreakMode;
@@ -108,7 +100,8 @@ namespace HotReloadKit.VS
         }
 
 
-        bool hotReloadPause = false;
+        bool hotReloadPaused = false;
+        bool hotReloadRunning = false;
         HotReloadServer hotReloadServer;
         CancellationTokenSource sessionCancellationTokenSource;
 
@@ -116,12 +109,12 @@ namespace HotReloadKit.VS
         async Task RunHotReloadServerAsync()
         {
             await sessionSemaphore.WaitAsync();
+            hotReloadRunning = true;
             try
             {
                 Debug.WriteLine($"---------------- HotReloadKit - BEGIN ----------------");
 
                 sessionCancellationTokenSource = new CancellationTokenSource();
-                hotReloadPause = false;
 
                 hotReloadServer = new HotReloadServer();
                 hotReloadServer.HotReloadStarted += HotReloadServer_HotReloadStarted;
@@ -144,6 +137,7 @@ namespace HotReloadKit.VS
             {
                 Debug.WriteLine(ex);
             }
+            hotReloadRunning = false;
             sessionSemaphore.Release();
         }
 
@@ -192,19 +186,23 @@ namespace HotReloadKit.VS
 
         private void DebuggerEvents_OnEnterBreakMode(dbgEventReason Reason, ref dbgExecutionAction ExecutionAction)
         {
-            hotReloadPause = true;
+            hotReloadPaused = true;
         }
 
         private void DebuggerEvents_OnEnterRunMode(dbgEventReason Reason)
         {
-            _ = RunHotReloadServerAsync();
+            hotReloadPaused = false;
+            if (!hotReloadRunning)
+            {
+                _ = RunHotReloadServerAsync();
+            }
         }
 
         private void DocumentEvents_DocumentSaved(EnvDTE.Document Document)
         {
             _ = Task.Run(async () =>
             {
-                if (!hotReloadPause)
+                if (!hotReloadPaused)
                 {
                     await this.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var fileName = Document.FullName;

@@ -18,7 +18,7 @@ class Program
         Console.ReadLine();
     }
 } 
-        
+     
 class A  
 {           
         
