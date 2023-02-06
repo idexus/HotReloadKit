@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj" />
+    <ProjectReference Include="..\..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj" />
     <ProjectReference Include="..\HotReloadKit.Builder\HotReloadKit.Builder.csproj" />
     <PackageReference Include="System.Text.Json" Version="6.0.7" />
     <ProjectReference Include="..\HotReloadKit.Shared\HotReloadKit.Shared.csproj" />

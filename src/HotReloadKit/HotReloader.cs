@@ -15,7 +15,7 @@ public static class HotReloader
     public const int DefaultTimeout = 1000;
 
     public static Action<Type[]>? UpdateApplication { get; set; }
-    public static Func<string[]>? RequestAdditionalTypeNames { get; set; }
+    public static Func<string[]>? RequestAdditionalTypes { get; set; }
 
     // private
 
@@ -78,7 +78,7 @@ public static class HotReloader
                 {
                     Debug.WriteLine("HotReloadKit - hot reload requested");
 
-                    string[] requestedTypeNames = RequestAdditionalTypeNames?.Invoke() ?? Array.Empty<string>();
+                    string[] requestedTypeNames = RequestAdditionalTypes?.Invoke() ?? Array.Empty<string>();
                     var hotreloadRequest = new HotReloadRequestAdditionalTypesMessage { TypeNames = requestedTypeNames };
                     var jsonRequest = JsonSerializer.Serialize(hotreloadRequest);
 

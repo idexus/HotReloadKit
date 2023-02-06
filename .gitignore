@@ -6,6 +6,8 @@
 .DS_Store
 *.HotReloadSupport.g.cs
 Assembly.cs
+*.snk
+_key/
 
 # User-specific files
 *.rsuser
