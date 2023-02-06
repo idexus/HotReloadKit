@@ -21,12 +21,10 @@
 	<None Include="docs\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SlimTcpServer" Version="0.2.2-beta.1" />
-  </ItemGroup>
-  <ItemGroup>
 	<None Include="..\HotReloadKit.Generator\bin\$(Configuration)\netstandard2.0\HotReloadKit.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj" />
     <ProjectReference Include="..\HotReloadKit.Shared\HotReloadKit.Shared.csproj" />
   </ItemGroup>
 </Project>

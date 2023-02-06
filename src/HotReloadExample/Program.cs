@@ -17,13 +17,14 @@ class Program
 
         Console.ReadLine();
     }
-}  
-         
-class A  
-{            
-       
 } 
-       
+        
+class A  
+{           
+        
+}
+
+
 class B
 {  
     

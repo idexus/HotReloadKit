@@ -1,0 +1,6 @@
+{
+  "description": "Read about creating extension packs at https://aka.ms/vsextpack",
+  "version": "0.3.2.0",
+  "extensions": [
+  ]
+}

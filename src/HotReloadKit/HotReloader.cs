@@ -12,14 +12,14 @@ public static class HotReloader
 {
     // public
 
-    public const int DefaultTimeout = 10000;
+    public const int DefaultTimeout = 1000;
 
     public static Action<Type[]>? UpdateApplication { get; set; }
     public static Func<string[]>? RequestAdditionalTypeNames { get; set; }
 
     // private
 
-    static readonly int[] serverPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
+    static readonly int[] serverPorts = new int[] { 5088, 5089, 5994, 5995, 5996, 5997, 5998 };
     static readonly HotReloadClientConnectionData ClientConnectionData = new HotReloadClientConnectionData();
 
     // tokens
@@ -31,7 +31,7 @@ public static class HotReloader
         _ = ConnectAsync(serverIPs, timeout);
     }
 
-    static async Task ConnectAsync(IPAddress[] serverIPs, int timeout = DefaultTimeout)
+    static async Task ConnectAsync(IPAddress[] serverIPs, int timeout)
     {
         foreach (var serverIP in serverIPs)
             foreach (var serverPort in serverPorts)

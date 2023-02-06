@@ -8,11 +8,6 @@ namespace HotReloadKit.Shared
         public HotReloadMessage() => Type = GetType().Name;
     }
 
-    public class HotReloadErrorMessage : HotReloadMessage
-    {
-        public string Description { get; set; }
-    }
-
     public class HotReloadServerConnectionData : HotReloadMessage
     {
         public static string DefaultToken => $@"<<|HotReloadKit|>>";

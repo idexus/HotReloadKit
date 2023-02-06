@@ -16,7 +16,7 @@ namespace HotReloadKit.Server
     {
         // startic
 
-        readonly static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
+        readonly static int[] hotReloadServerPorts = new int[] { 5088, 5089, 5994, 5995, 5996, 5997, 5998 };
         readonly static int defaultConnectionResponseReadTimeout = 2000;
 
         static int asseblyVersion = 0;
@@ -64,10 +64,11 @@ namespace HotReloadKit.Server
             }
         }
 
+        Task hotReloadClientTask;
         void Server_ClientConnected(SlimClient client)
         {
             Debug.WriteLine($"HotReloadKit client connected guid: {client.Guid}");
-            _ = ClientRunLoopAsync(client);
+            ClientRunLoop(client);
         }
 
         public void AddChangedFile(string fileName)
@@ -91,64 +92,68 @@ namespace HotReloadKit.Server
         {
             cancellationTokenSource?.Cancel();
             await hotReloadServer?.StopAsync();
+            await hotReloadClientTask;
         }
 
-        async Task ClientRunLoopAsync(SlimClient client)
+        void ClientRunLoop(SlimClient client)
         {
-            try
+            hotReloadClientTask = Task.Run(async () =>
             {
-                changedFilesSemaphoreTrig = new SemaphoreSlim(0);
-
-                // clear list
-                lock (changedFilePaths)
+                try
                 {
-                    changedFilePaths.Clear();
-                }
+                    changedFilesSemaphoreTrig = new SemaphoreSlim(0);
 
-                // send server token
-                var serverConnectionData = new HotReloadServerConnectionData
-                {
-                    Token = HotReloadServerConnectionData.DefaultToken,
-                    Version = HotReloadServerConnectionData.CurrentVersion,
-                    Guid = client.Guid
-                };
-                await client.WriteAsync(JsonSerializer.Serialize(serverConnectionData));
-
-                var connectionMessage = await client.ReadAsync(defaultConnectionResponseReadTimeout);
-                ConnectionData = JsonSerializer.Deserialize<HotReloadClientConnectionData>(connectionMessage);
-                if (ConnectionData != null && ConnectionData.Type == nameof(HotReloadClientConnectionData))
-                {
-                    Debug.WriteLine($"HotReloadKit session assembly: {ConnectionData.AssemblyName} platform: {ConnectionData.PlatformName}");
-
-                    HotReloadStarted();
-
-                    // client loop
-                    while (client.IsConnected && !cancellationTokenSource.Token.IsCancellationRequested)
+                    // clear list
+                    lock (changedFilePaths)
                     {
-                        try
-                        {
-                            await changedFilesSemaphoreTrig.WaitAsync(cancellationTokenSource.Token);
-
-                            await client?.WriteAsync(JsonSerializer.Serialize(new HotReloadRequest()));
-
-                            var message = await client.ReadAsync();
-                            var additionaTypesMessage = JsonSerializer.Deserialize<HotReloadRequestAdditionalTypesMessage>(message);
-
-                            await CompileAndEmitChangesAsync(client, additionaTypesMessage.TypeNames);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine(ex.Message);
-                        }
+                        changedFilePaths.Clear();
                     }
 
-                    HotReloadStopped();
+                    // send server token
+                    var serverConnectionData = new HotReloadServerConnectionData
+                    {
+                        Token = HotReloadServerConnectionData.DefaultToken,
+                        Version = HotReloadServerConnectionData.CurrentVersion,
+                        Guid = client.Guid
+                    };
+                    await client.WriteAsync(JsonSerializer.Serialize(serverConnectionData));
+
+                    var connectionMessage = await client.ReadAsync(defaultConnectionResponseReadTimeout);
+                    ConnectionData = JsonSerializer.Deserialize<HotReloadClientConnectionData>(connectionMessage);
+                    if (ConnectionData != null && ConnectionData.Type == nameof(HotReloadClientConnectionData))
+                    {
+                        Debug.WriteLine($"HotReloadKit session assembly: {ConnectionData.AssemblyName} platform: {ConnectionData.PlatformName}");
+
+                        HotReloadStarted();
+
+                        // client loop
+                        while (client.IsConnected && !cancellationTokenSource.Token.IsCancellationRequested)
+                        {
+                            try
+                            {
+                                await changedFilesSemaphoreTrig.WaitAsync(cancellationTokenSource.Token);
+
+                                await client?.WriteAsync(JsonSerializer.Serialize(new HotReloadRequest()));
+
+                                var message = await client.ReadAsync();
+                                var additionaTypesMessage = JsonSerializer.Deserialize<HotReloadRequestAdditionalTypesMessage>(message);
+
+                                await CompileAndEmitChangesAsync(client, additionaTypesMessage.TypeNames);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                            }
+                        }
+
+                        HotReloadStopped();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-            }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
+            });
         }
 
         async Task CompileAndEmitChangesAsync(SlimClient client, string[] additionaTypeNames)
