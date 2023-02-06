@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotReloadKit.Builder;
+using HotReloadKit.Shared;
 using Microsoft.CodeAnalysis;
 using SlimTcpServer;
 
@@ -15,35 +16,28 @@ namespace HotReloadKit.Server
     {
         // startic
 
-        static int asseblyVersion = 0;
-        static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
+        readonly static int[] hotReloadServerPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
+        readonly static int defaultConnectionResponseReadTimeout = 2000;
 
+        static int asseblyVersion = 0;
+        
         // private
 
         SlimServer hotReloadServer;
         SemaphoreSlim changedFilesSemaphoreTrig = new SemaphoreSlim(0);
         readonly List<string> changedFilePaths = new List<string>();
-        readonly Solution solution;
-        readonly Project activeProject;
-        readonly string assemblyName;
-        readonly string assemblyOutputhPath;
         CancellationTokenSource cancellationTokenSource;
 
         // public
 
+        public Solution Solution { get; set; }
+        public Project ActiveProject { get; set; }
+        public HotReloadClientConnectionData ConnectionData { get; private set; }
+
         public event Action HotReloadStarted;
         public event Action HotReloadStopped;
 
-        public HotReloadServer(Solution solution, Project activeProject, string assemblyName, string assemblyOutputhPath)
-        {
-            this.solution = solution;
-            this.activeProject = activeProject;
-            this.assemblyName = assemblyName;
-            this.assemblyOutputhPath = assemblyOutputhPath;
-        }
-
-
-        public async Task StartServer()
+        public async Task StartServerAsync()
         {
             cancellationTokenSource = new CancellationTokenSource();
             foreach (var port in hotReloadServerPorts)
@@ -55,9 +49,9 @@ namespace HotReloadKit.Server
                     hotReloadServer.ServerStarted += server => Debug.WriteLine($"HotReloadKit server started");
                     hotReloadServer.ServerStopped += server => Debug.WriteLine($"HotReloadKit server stopped");
                     hotReloadServer.ClientConnected += Server_ClientConnected;
-                    hotReloadServer.ClientDisconnected += client => Debug.WriteLine($"HotReloadKit client disconnected: {client.Guid}");
+                    hotReloadServer.ClientDisconnected += client => Debug.WriteLine($"HotReloadKit client disconnected guid: {client.Guid}");
 
-                    await hotReloadServer.Start(port);
+                    await hotReloadServer.StartAsync(port);
 
                     Debug.WriteLine($"HotReloadKit tcp port: {port}");
                     break;
@@ -65,15 +59,15 @@ namespace HotReloadKit.Server
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
-                    await hotReloadServer?.Stop();
+                    await hotReloadServer?.StopAsync();
                 }
             }
         }
 
         void Server_ClientConnected(SlimClient client)
         {
-            Debug.WriteLine($"HotReloadKit client connected: {client.Guid}");
-            _ = ClientRunLoop(client);
+            Debug.WriteLine($"HotReloadKit client connected guid: {client.Guid}");
+            _ = ClientRunLoopAsync(client);
         }
 
         public void AddChangedFile(string fileName)
@@ -96,60 +90,74 @@ namespace HotReloadKit.Server
         public async Task StopServer()
         {
             cancellationTokenSource?.Cancel();
-            await hotReloadServer?.Stop();
+            await hotReloadServer?.StopAsync();
         }
 
-        async Task ClientRunLoop(SlimClient client)
+        async Task ClientRunLoopAsync(SlimClient client)
         {
-            changedFilesSemaphoreTrig = new SemaphoreSlim(0);
-
-            // clear list
-            lock (changedFilePaths)
+            try
             {
-                changedFilePaths.Clear();
+                changedFilesSemaphoreTrig = new SemaphoreSlim(0);
+
+                // clear list
+                lock (changedFilePaths)
+                {
+                    changedFilePaths.Clear();
+                }
+
+                // send server token
+                var serverConnectionData = new HotReloadServerConnectionData
+                {
+                    Token = HotReloadServerConnectionData.DefaultToken,
+                    Version = HotReloadServerConnectionData.CurrentVersion,
+                    Guid = client.Guid
+                };
+                await client.WriteAsync(JsonSerializer.Serialize(serverConnectionData));
+
+                var connectionMessage = await client.ReadAsync(defaultConnectionResponseReadTimeout);
+                ConnectionData = JsonSerializer.Deserialize<HotReloadClientConnectionData>(connectionMessage);
+                if (ConnectionData != null && ConnectionData.Type == nameof(HotReloadClientConnectionData))
+                {
+                    Debug.WriteLine($"HotReloadKit session assembly: {ConnectionData.AssemblyName} platform: {ConnectionData.PlatformName}");
+
+                    HotReloadStarted();
+
+                    // client loop
+                    while (client.IsConnected && !cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            await changedFilesSemaphoreTrig.WaitAsync(cancellationTokenSource.Token);
+
+                            await client?.WriteAsync(JsonSerializer.Serialize(new HotReloadRequest()));
+
+                            var message = await client.ReadAsync();
+                            var additionaTypesMessage = JsonSerializer.Deserialize<HotReloadRequestAdditionalTypesMessage>(message);
+
+                            await CompileAndEmitChangesAsync(client, additionaTypesMessage.TypeNames);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.Message);
+                        }
+                    }
+
+                    HotReloadStopped();
+                }
             }
-
-            // send server token
-            var serverToken = $@"<<|HotReloadKit|{assemblyName}|connect|>>";
-            await client.WriteAsync(serverToken);
-
-            HotReloadStarted();
-
-            // client loop
-            while (client.IsConnected && !cancellationTokenSource.Token.IsCancellationRequested)
+            catch (Exception ex)
             {
-                try
-                {
-                    await changedFilesSemaphoreTrig.WaitAsync(cancellationTokenSource.Token);
-
-                    var reloadToken = $@"<<|HotReloadKit|{assemblyName}|hotreload|>>";
-
-                    await client?.WriteAsync(reloadToken);
-
-                    var message = await client.ReadAsync();
-                    var hotReloadRequest = JsonSerializer.Deserialize<HotReloadRequest>(message);
-
-                    await CompileAndEmitChanges(client, hotReloadRequest);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                }
+                Debug.WriteLine(ex);
             }
-
-            HotReloadStopped();
         }
 
-        async Task CompileAndEmitChanges(SlimClient client, HotReloadRequest hotReloadRequest)
+        async Task CompileAndEmitChangesAsync(SlimClient client, string[] additionaTypeNames)
         {
             try
             {
                 asseblyVersion++;
 
-
-
                 // ------- compilation ---------
-
                 
                 CodeCompilation codeCompilation = null;
 
@@ -159,10 +167,9 @@ namespace HotReloadKit.Server
                     {
                         codeCompilation = new CodeCompilation
                         {
-                            HotReloadRequest = hotReloadRequest,
-                            Solution = solution,
-                            Project = activeProject,
-                            DllOutputhPath = assemblyOutputhPath,
+                            AdditionalTypeNames = additionaTypeNames,
+                            Solution = Solution,
+                            Project = ActiveProject,
                             ChangedFilePaths = changedFilePaths.ToList()
                         };
                     }
@@ -170,16 +177,19 @@ namespace HotReloadKit.Server
 
                 if (codeCompilation != null)
                 {
-                    await codeCompilation.Compile();
+                    await codeCompilation.CompileAsync();
 
                     // ------- send data assembly ---------
-
-                    await codeCompilation.EmitJsonDataAsync(async hotReloadData =>
+                    await codeCompilation.EmitDataAsync(async (string[] typeNames, byte[] dllData, byte[] pdbData) =>
                     {
-                        var jsonData = JsonSerializer.Serialize(hotReloadData);
-                        await client.WriteAsync(jsonData);
+                        var hotReloadData = new HotReloadData
+                        {
+                            TypeNames = typeNames,
+                            DllData = dllData,
+                            PdbData = pdbData
+                        };
+                        await client.WriteAsync(JsonSerializer.Serialize(hotReloadData));
                     });
-
                 }
             }
             catch (Exception ex)

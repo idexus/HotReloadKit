@@ -7,9 +7,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        CodeReloader.Init<Program>(HotReloadSupport.IdeIPs);
-        CodeReloader.RequestedTypeNamesHandler = () => new string[] { "HotReloadExample.MyClass" };        
-        CodeReloader.UpdateApplication = types =>
+        HotReloader.Init<Program>(HotReloadSupport.IdeIPs);
+        HotReloader.RequestAdditionalTypeNames = () => new string[] { "HotReloadExample.MyClass" };        
+        HotReloader.UpdateApplication = types =>
         {
             foreach (var type in types) 
                 Console.WriteLine(type.FullName);
@@ -19,9 +19,9 @@ class Program
     }
 }  
          
-class A
+class A  
 {            
-         
+       
 } 
        
 class B
@@ -32,4 +32,4 @@ class B
 class C
 {
   
-} 
+}

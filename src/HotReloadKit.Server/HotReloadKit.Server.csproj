@@ -7,7 +7,8 @@
   <ItemGroup>
     <ProjectReference Include="..\HotReloadKit.Builder\HotReloadKit.Builder.csproj" />
     <PackageReference Include="System.Text.Json" Version="6.0.7" />
-    <PackageReference Include="SlimTcpServer" Version="0.2.1-beta.2" />
+    <PackageReference Include="SlimTcpServer" Version="0.2.2-beta.1" />
+    <ProjectReference Include="..\HotReloadKit.Shared\HotReloadKit.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="SlimTcpServer" />

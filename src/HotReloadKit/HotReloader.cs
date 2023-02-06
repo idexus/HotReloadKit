@@ -8,14 +8,14 @@ using HotReloadKit.Shared;
 
 namespace HotReloadKit;
 
-public static class CodeReloader
+public static class HotReloader
 {
     // public
 
     public const int DefaultTimeout = 10000;
 
     public static Action<Type[]>? UpdateApplication { get; set; }
-    public static Func<string[]>? RequestedTypeNamesHandler { get; set; }
+    public static Func<string[]>? RequestAdditionalTypeNames { get; set; }
 
     // private
 
@@ -42,13 +42,13 @@ public static class CodeReloader
 
                     client.Disconnected += client => Debug.WriteLine("HotReloadKit - disconnected");
 
-                    await client.Connect(serverIP, serverPort);
+                    await client.ConnectAsync(serverIP, serverPort);
 
                     var message = await client.ReadAsync(DefaultTimeout);
                     var messageData = JsonSerializer.Deserialize<HotReloadServerConnectionData>(message);
                     if (messageData?.Token == HotReloadServerConnectionData.DefaultToken)
                     {
-                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort} version: {messageData.Version} guid: {messageData.Guid}");
+                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort} server version: {messageData.Version} guid: {messageData.Guid}");
                         _ = ClientRunLoop(client);
                         return;
                     }
@@ -74,17 +74,17 @@ public static class CodeReloader
             {
                 var message = await client.ReadAsync();
                 var messageData = JsonSerializer.Deserialize<HotReloadMessage>(message);
-                if (messageData?.MessageType == nameof(HotReloadRequest))
+                if (messageData?.Type == nameof(HotReloadRequest))
                 {
                     Debug.WriteLine("HotReloadKit - hot reload requested");
 
-                    string[] requestedTypeNames = RequestedTypeNamesHandler?.Invoke() ?? Array.Empty<string>();
-                    var hotreloadRequest = new HotReloadAdditionalTypesMessage { TypeNames = requestedTypeNames };
+                    string[] requestedTypeNames = RequestAdditionalTypeNames?.Invoke() ?? Array.Empty<string>();
+                    var hotreloadRequest = new HotReloadRequestAdditionalTypesMessage { TypeNames = requestedTypeNames };
                     var jsonRequest = JsonSerializer.Serialize(hotreloadRequest);
 
                     await client.WriteAsync(jsonRequest);
                 }
-                else if (messageData?.MessageType == nameof(HotReloadData))
+                else if (messageData?.Type == nameof(HotReloadData))
                 {
                     var hotReloadData = JsonSerializer.Deserialize<HotReloadData>(message)!;
                     var assembly = Assembly.Load(hotReloadData.DllData!, hotReloadData.PdbData);

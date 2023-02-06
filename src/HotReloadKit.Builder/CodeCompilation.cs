@@ -17,12 +17,9 @@ namespace HotReloadKit.Builder
 
         // -- public properties --
 
-        public HotReloadRequest HotReloadRequest { get; set; }
-
         public Solution Solution { get; set; }
         public Project Project { get; set; }
-
-        public string DllOutputhPath { get; set; }
+        public string[] AdditionalTypeNames { get; set; }
 
         public IEnumerable<string> ChangedFilePaths { get; set; }
 
@@ -34,11 +31,9 @@ namespace HotReloadKit.Builder
         // ----------------------------------
         // --------- compilation ------------
 
-        public async Task Compile()
+        public async Task CompileAsync()
         {
             // ------ Microsoft.CodeAnalysis projects ------
-
-            DllOutputhPath = DllOutputhPath ?? Project.OutputFilePath;
 
             var referencedProjects = Project.ProjectReferences?.Select(e => Solution.Projects.FirstOrDefault(x => x.Id == e.ProjectId));
             var generators = Project.AnalyzerReferences.SelectMany(e => e.GetGeneratorsForAllLanguages());
@@ -76,7 +71,7 @@ namespace HotReloadKit.Builder
                 .Where(e =>
                     !e.FilePath.EndsWith(".g.cs") &&
                     (ChangedFilePaths.Contains(e.FilePath) ||
-                    GetClassNames(e).Intersect(HotReloadRequest.TypeNames).Count() > 0))
+                    GetClassNames(e).Intersect(AdditionalTypeNames).Count() > 0))
                 .Select(e => e.FilePath)
                 .ToList();
 
@@ -101,7 +96,7 @@ namespace HotReloadKit.Builder
 
             // --------- metadata reference ---------
             List<MetadataReference> metadataReferences = new List<MetadataReference>();
-            metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(DllOutputhPath)));
+            metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(Project.OutputFilePath)));
             metadataReferences.AddRange(compilation.References);
 
             // --------- new compilation ------------
@@ -118,7 +113,7 @@ namespace HotReloadKit.Builder
             generatorDriver.RunGeneratorsAndUpdateCompilation(newCompilationBeforeGenerators, out newCompilation, out var diagnostics);
         }
 
-        public async Task EmitJsonDataAsync(Func<HotReloadData, Task> sendData)
+        public async Task EmitDataAsync(Func<string[], byte[], byte[], Task> sendData)
         {
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
@@ -126,14 +121,7 @@ namespace HotReloadKit.Builder
                 var emitResult = newCompilation.Emit(dllStream, pdbStream);
                 if (emitResult.Success)
                 {
-                    var hotReloadData = new HotReloadData
-                    {
-                        TypeNames = changedClassNames.ToArray(),
-                        AssemblyData = dllStream.GetBuffer(),
-                        PdbData = pdbStream.GetBuffer()
-                    };
-
-                    await sendData(hotReloadData);
+                    await sendData(changedClassNames.ToArray(), dllStream.GetBuffer(), pdbStream.GetBuffer());
                 }
             }
         }
