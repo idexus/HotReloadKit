@@ -4,20 +4,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Diagnostics;
 using SlimTcpServer;
+using HotReloadKit.Shared;
 
 namespace HotReloadKit;
-
-class HotReloadRequest
-{
-    public string[]? TypeNames { get; set; }
-}
-
-class HotReloadData
-{
-    public string[]? TypeNames { get; set; }
-    public byte[]? AssemblyData { get; set; }
-    public byte[]? PdbData { get; set; }
-}
 
 public static class CodeReloader
 {
@@ -30,18 +19,15 @@ public static class CodeReloader
 
     // private
 
-    static int[] serverPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
-    static Type? projectType;
+    static readonly int[] serverPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
+    static readonly HotReloadClientConnectionData ClientConnectionData = new HotReloadClientConnectionData();
 
     // tokens
 
-    static string projectAssemblyName => projectType?.Assembly.GetName().Name ?? "----";
-    static string reloadToken => $@"<<|HotReloadKit|{projectAssemblyName}|hotreload|>>";
-    static string serverToken => $@"<<|HotReloadKit|{projectAssemblyName}|connect|>>";
-
-    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout)
+    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout, string? platformName = null)
     {
-        projectType = typeof(T);
+        ClientConnectionData.PlatformName = platformName;
+        ClientConnectionData.AssemblyName = typeof(T).Assembly.GetName().Name;
         _ = ConnectAsync(serverIPs, timeout);
     }
 
@@ -58,15 +44,16 @@ public static class CodeReloader
 
                     await client.Connect(serverIP, serverPort);
 
-                    var readServerToken = await client.ReadAsync(DefaultTimeout);
-                    if (readServerToken == serverToken)
+                    var message = await client.ReadAsync(DefaultTimeout);
+                    var messageData = JsonSerializer.Deserialize<HotReloadServerConnectionData>(message);
+                    if (messageData?.Token == HotReloadServerConnectionData.DefaultToken)
                     {
-                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort}");
+                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort} version: {messageData.Version} guid: {messageData.Guid}");
                         _ = ClientRunLoop(client);
                         return;
                     }
                     else
-                        throw new Exception("HotReloadKit - wrong token");
+                        throw new Exception("HotReloadKit - wrong server token");
                 }                
                 catch (Exception ex)
                 {
@@ -81,23 +68,26 @@ public static class CodeReloader
     {
         try
         {
+            await client.WriteAsync(JsonSerializer.Serialize(ClientConnectionData));
+
             while (client.IsConnected)
             {
                 var message = await client.ReadAsync();
-                if (message == reloadToken)
+                var messageData = JsonSerializer.Deserialize<HotReloadMessage>(message);
+                if (messageData?.MessageType == nameof(HotReloadRequest))
                 {
                     Debug.WriteLine("HotReloadKit - hot reload requested");
 
                     string[] requestedTypeNames = RequestedTypeNamesHandler?.Invoke() ?? Array.Empty<string>();
-                    var hotreloadRequest = new HotReloadRequest { TypeNames = requestedTypeNames };
+                    var hotreloadRequest = new HotReloadAdditionalTypesMessage { TypeNames = requestedTypeNames };
                     var jsonRequest = JsonSerializer.Serialize(hotreloadRequest);
 
                     await client.WriteAsync(jsonRequest);
                 }
-                else
+                else if (messageData?.MessageType == nameof(HotReloadData))
                 {
                     var hotReloadData = JsonSerializer.Deserialize<HotReloadData>(message)!;
-                    var assembly = Assembly.Load(hotReloadData.AssemblyData!, hotReloadData.PdbData);
+                    var assembly = Assembly.Load(hotReloadData.DllData!, hotReloadData.PdbData);
 
                     var typeList = new List<Type>();
                     foreach (var typeName in hotReloadData.TypeNames!)
