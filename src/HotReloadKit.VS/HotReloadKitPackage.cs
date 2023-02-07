@@ -21,10 +21,7 @@ using HotReloadKit.Server;
 using Microsoft.VisualStudio.ComponentModelHost;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
-using VSLangProj;
-using Microsoft.VisualStudio.VCProject;
-using System.Windows.Interop;
-using System.Collections.Generic;
+
 
 namespace HotReloadKit.VS
 {
