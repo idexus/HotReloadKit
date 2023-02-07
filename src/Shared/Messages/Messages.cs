@@ -1,6 +1,8 @@
 ﻿using System;
 
+#if NET5_0_OR_GREATER
 #nullable disable
+#endif
 
 namespace HotReloadKit.Shared
 {
@@ -41,4 +43,6 @@ namespace HotReloadKit.Shared
     }
 }
 
+#if NET6_0_OR_GREATER
 #nullable restore
+#endif

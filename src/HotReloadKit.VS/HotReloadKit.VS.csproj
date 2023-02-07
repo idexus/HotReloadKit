@@ -82,6 +82,15 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\Builder\CodeCompilation.cs">
+      <Link>Shared\CodeCompilation.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\Messages\Messages.cs">
+      <Link>Shared\Messages.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\Server\HotReloadServer.cs">
+      <Link>Shared\HotReloadServer.cs</Link>
+    </Compile>
     <Compile Include="HotReloadKitPackage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -103,13 +112,9 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HotReloadKit.Server\HotReloadKit.Server.csproj">
-      <Project>{768a49a3-63be-47cf-9e59-c5279f9c2e17}</Project>
-      <Name>HotReloadKit.Server</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HotReloadKit.Shared\HotReloadKit.Shared.csproj">
-      <Project>{f0f3d398-78a5-462e-89b2-f7e90e2f8c1d}</Project>
-      <Name>HotReloadKit.Shared</Name>
+    <ProjectReference Include="..\..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj">
+      <Project>{9baeabe1-e0e5-40a2-bdb4-a2a71906418f}</Project>
+      <Name>SlimTcpServer</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -129,7 +129,7 @@ namespace HotReloadKit.VS
                 }
                 catch { }
                 
-                await hotReloadServer.StopServer();
+                await hotReloadServer.StopServerAsync();
 
                 Debug.WriteLine($"---------------- HotReloadKit - END ----------------");
             }

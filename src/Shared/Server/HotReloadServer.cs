@@ -73,7 +73,7 @@ namespace HotReloadKit.Server
 
         public void AddChangedFile(string fileName)
         {
-            Task.Run(() =>
+            _ = Task.Run(() =>
             {
                 lock(changedFilePaths)
                 {
@@ -88,7 +88,7 @@ namespace HotReloadKit.Server
                 changedFilesSemaphoreTrig.Release();
         }
 
-        public async Task StopServer()
+        public async Task StopServerAsync()
         {
             cancellationTokenSource?.Cancel();
             await hotReloadServer?.StopAsync();
