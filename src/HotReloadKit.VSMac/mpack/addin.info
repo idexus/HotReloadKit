@@ -3,6 +3,7 @@
   <Runtime>
     <Import assembly="HotReloadKit.Builder.dll" />
     <Import assembly="HotReloadKit.Server.dll" />
+    <Import assembly="HotReloadKit.Shared.dll" />
     <Import assembly="HotReloadKit.VSMac.dll" />
     <Import assembly="Humanizer.dll" />
     <Import assembly="Microsoft.Bcl.AsyncInterfaces.dll" />

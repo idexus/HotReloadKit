@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Server", "HotR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Shared", "HotReloadKit.Shared\HotReloadKit.Shared.csproj", "{F0F3D398-78A5-462E-89B2-F7E90E2F8C1D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimTcpServer", "..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj", "{051D7C34-260E-447C-968F-BF5350358175}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{F768703A-58B0-4269-9E1E-7D55CE3E3161}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,7 +60,12 @@ Global
 		{F0F3D398-78A5-462E-89B2-F7E90E2F8C1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0F3D398-78A5-462E-89B2-F7E90E2F8C1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F0F3D398-78A5-462E-89B2-F7E90E2F8C1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{051D7C34-260E-447C-968F-BF5350358175} = {F768703A-58B0-4269-9E1E-7D55CE3E3161}
 	EndGlobalSection
 EndGlobal
