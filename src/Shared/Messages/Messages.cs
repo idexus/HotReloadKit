@@ -1,5 +1,7 @@
 ﻿using System;
 
+#nullable disable
+
 namespace HotReloadKit.Shared
 {
     public class HotReloadMessage
@@ -38,3 +40,5 @@ namespace HotReloadKit.Shared
         public byte[] PdbData { get; set; }
     }
 }
+
+#nullable restore

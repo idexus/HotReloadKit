@@ -92,7 +92,7 @@ namespace HotReloadKit.Server
         {
             cancellationTokenSource?.Cancel();
             await hotReloadServer?.StopAsync();
-            await hotReloadClientTask;
+            if (hotReloadClientTask != null) await hotReloadClientTask;
         }
 
         void ClientRunLoop(SlimClient client)
