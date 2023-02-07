@@ -10,15 +10,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Builder", "HotReloadKit.Builder\HotReloadKit.Builder.csproj", "{D9E7EA1C-5435-4899-BE5A-3AD4E2C1497B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit", "HotReloadKit\HotReloadKit.csproj", "{106CDB62-8BF3-4EB9-861B-D511CE111638}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadExample", "HotReloadExample\HotReloadExample.csproj", "{1AB219BA-DE9E-437E-BAB6-6E6A0F7FAF54}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Generator", "HotReloadKit.Generator\HotReloadKit.Generator.csproj", "{AEE60C08-3FC7-4D80-AF38-A0D427097F93}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotReloadKit.Server", "HotReloadKit.Server\HotReloadKit.Server.csproj", "{768A49A3-63BE-47CF-9E59-C5279F9C2E17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimTcpServer", "..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj", "{051D7C34-260E-447C-968F-BF5350358175}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{F768703A-58B0-4269-9E1E-7D55CE3E3161}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,7 +50,12 @@ Global
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{768A49A3-63BE-47CF-9E59-C5279F9C2E17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{051D7C34-260E-447C-968F-BF5350358175}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{051D7C34-260E-447C-968F-BF5350358175} = {F768703A-58B0-4269-9E1E-7D55CE3E3161}
 	EndGlobalSection
 EndGlobal

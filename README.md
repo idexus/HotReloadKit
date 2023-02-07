@@ -1,6 +1,6 @@
 # HotReloadKit
 
-Hot Reload Kit for VS2022 for Mac
+Hot Reload Kit for VS2022 for Mac and Windows
 
 # Usage 
 
@@ -11,27 +11,27 @@ class Program
 {
     static void Main(string[] args)
     {
-        CodeReloader.Init<Program>(HotReloadSupport.IdeIPs);        
-        
-        // you can specify additional names of requested types
-        CodeReloader.RequestedTypeNamesHandler = () => new string[] { "HotReloadExample.MyClass" };
-
-        CodeReloader.UpdateApplication = types =>
+        HotReloader.Init<Program>(HotReloadSupport.IdeIPs);
+        HotReloader.RequestAdditionalTypes = () => new string[] { "HotReloadExample.MyClass" };        
+        HotReloader.UpdateApplication = types =>
         {
             foreach (var type in types) 
                 Console.WriteLine(type.FullName);
         };
-          
-        ...
 
+        Console.ReadLine();
     }
-}  
+} 
 ```
 
-# VS2022 for Mac
+# VS2022 extensions
 
-- [HotReloadKit extension mpack](https://github.com/idexus/HotReloadKit/releases)
-- nuget library
+- [mpack package for VS for Mac](https://github.com/idexus/HotReloadKit/releases)
+- [vsix package for VS for Windows](https://github.com/idexus/HotReloadKit/releases)
+
+# Nuget package
+
+Add it to your project
 
 ```
 dotnet add package HotReloadKit

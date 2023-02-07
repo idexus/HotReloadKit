@@ -4,48 +4,34 @@ using System.Text.Json;
 using System.Threading;
 using System.Diagnostics;
 using SlimTcpServer;
+using HotReloadKit.Shared;
 
 namespace HotReloadKit;
 
-class HotReloadRequest
-{
-    public string[]? TypeNames { get; set; }
-}
-
-class HotReloadData
-{
-    public string[]? TypeNames { get; set; }
-    public byte[]? AssemblyData { get; set; }
-    public byte[]? PdbData { get; set; }
-}
-
-public static class CodeReloader
+public static class HotReloader
 {
     // public
 
-    public const int DefaultTimeout = 10000;
+    public const int DefaultTimeout = 1000;
 
     public static Action<Type[]>? UpdateApplication { get; set; }
-    public static Func<string[]>? RequestedTypeNamesHandler { get; set; }
+    public static Func<string[]>? RequestAdditionalTypes { get; set; }
 
     // private
 
-    static int[] serverPorts = new int[] { 50888, 50889, 5088, 5089, 60088, 60888 };
-    static Type? projectType;
+    static readonly int[] serverPorts = new int[] { 5088, 5089, 5994, 5995, 5996, 5997, 5998 };
+    static readonly HotReloadClientConnectionData ClientConnectionData = new HotReloadClientConnectionData();
 
     // tokens
 
-    static string projectAssemblyName => projectType?.Assembly.GetName().Name ?? "----";
-    static string reloadToken => $@"<<|HotReloadKit|{projectAssemblyName}|hotreload|>>";
-    static string serverToken => $@"<<|HotReloadKit|{projectAssemblyName}|connect|>>";
-
-    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout)
+    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout, string? platformName = null)
     {
-        projectType = typeof(T);
+        ClientConnectionData.PlatformName = platformName;
+        ClientConnectionData.AssemblyName = typeof(T).Assembly.GetName().Name;
         _ = ConnectAsync(serverIPs, timeout);
     }
 
-    static async Task ConnectAsync(IPAddress[] serverIPs, int timeout = DefaultTimeout)
+    static async Task ConnectAsync(IPAddress[] serverIPs, int timeout)
     {
         foreach (var serverIP in serverIPs)
             foreach (var serverPort in serverPorts)
@@ -56,17 +42,18 @@ public static class CodeReloader
 
                     client.Disconnected += client => Debug.WriteLine("HotReloadKit - disconnected");
 
-                    await client.Connect(serverIP, serverPort);
+                    await client.ConnectAsync(serverIP, serverPort);
 
-                    var readServerToken = await client.ReadAsync(DefaultTimeout);
-                    if (readServerToken == serverToken)
+                    var message = await client.ReadAsync(DefaultTimeout);
+                    var messageData = JsonSerializer.Deserialize<HotReloadServerConnectionData>(message);
+                    if (messageData?.Token == HotReloadServerConnectionData.DefaultToken)
                     {
-                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort}");
+                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort} server version: {messageData.Version} guid: {messageData.Guid}");
                         _ = ClientRunLoop(client);
                         return;
                     }
                     else
-                        throw new Exception("HotReloadKit - wrong token");
+                        throw new Exception("HotReloadKit - wrong server token");
                 }                
                 catch (Exception ex)
                 {
@@ -81,23 +68,26 @@ public static class CodeReloader
     {
         try
         {
+            await client.WriteAsync(JsonSerializer.Serialize(ClientConnectionData));
+
             while (client.IsConnected)
             {
                 var message = await client.ReadAsync();
-                if (message == reloadToken)
+                var messageData = JsonSerializer.Deserialize<HotReloadMessage>(message);
+                if (messageData?.Type == nameof(HotReloadRequest))
                 {
                     Debug.WriteLine("HotReloadKit - hot reload requested");
 
-                    string[] requestedTypeNames = RequestedTypeNamesHandler?.Invoke() ?? Array.Empty<string>();
-                    var hotreloadRequest = new HotReloadRequest { TypeNames = requestedTypeNames };
+                    string[] requestedTypeNames = RequestAdditionalTypes?.Invoke() ?? Array.Empty<string>();
+                    var hotreloadRequest = new HotReloadRequestAdditionalTypesMessage { TypeNames = requestedTypeNames };
                     var jsonRequest = JsonSerializer.Serialize(hotreloadRequest);
 
                     await client.WriteAsync(jsonRequest);
                 }
-                else
+                else if (messageData?.Type == nameof(HotReloadData))
                 {
                     var hotReloadData = JsonSerializer.Deserialize<HotReloadData>(message)!;
-                    var assembly = Assembly.Load(hotReloadData.AssemblyData!, hotReloadData.PdbData);
+                    var assembly = Assembly.Load(hotReloadData.DllData!, hotReloadData.PdbData);
 
                     var typeList = new List<Type>();
                     foreach (var typeName in hotReloadData.TypeNames!)

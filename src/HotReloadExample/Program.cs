@@ -7,29 +7,29 @@ class Program
 {
     static void Main(string[] args)
     {
-        CodeReloader.Init<Program>(HotReloadSupport.IdeIPs);
-        CodeReloader.RequestedTypeNamesHandler = () => new string[] { "HotReloadExample.MyClass" };        
-        CodeReloader.UpdateApplication = types =>
+        HotReloader.Init<Program>(HotReloadSupport.IdeIPs);
+        HotReloader.RequestAdditionalTypes = () => new string[] { "HotReloadExample.MyClass" };        
+        HotReloader.UpdateApplication = types =>
         {
             foreach (var type in types) 
                 Console.WriteLine(type.FullName);
         };
 
-        Console.ReadLine();
+        Console.ReadLine();  
     }
-}  
-         
-class A
-{            
-         
 } 
-       
+  
+class A
+{          
+        
+}
+
 class B
 {  
-    
-}  
+     
+} 
 
 class C
 {
   
-} 
+}

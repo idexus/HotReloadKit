@@ -11,9 +11,17 @@
     <PackageReference Include="Microsoft.VisualStudioMac.Sdk" Version="17.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HotReloadKit.Server\HotReloadKit.Server.csproj" />
+    <Compile Include="..\Shared\Messages\Messages.cs">
+      <Link>Shared\Messages\Messages.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\Server\HotReloadServer.cs">
+      <Link>Shared\Server\HotReloadServer.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\Builder\CodeCompilation.cs">
+      <Link>Shared\Builder\CodeCompilation.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Remove="SlimTcpServer" />
+    <ProjectReference Include="..\..\libs\SlimTcpServer\src\SlimTcpServer\SlimTcpServer.csproj" />
   </ItemGroup>
 </Project>
