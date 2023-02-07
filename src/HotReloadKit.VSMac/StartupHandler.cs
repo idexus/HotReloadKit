@@ -57,7 +57,7 @@ namespace HotReloadKit.VSMac
 
             await Task.Delay(1000);
             await IdeServices.ProjectOperations.CurrentRunOperation.Task;
-            await hotReloadServer.StopServer();
+            await hotReloadServer.StopServerAsync();
 
             sessionSemaphore.Release();
         }
