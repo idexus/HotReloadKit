@@ -32,6 +32,7 @@ namespace HotReloadKit.Server
 
         public Solution Solution { get; set; }
         public Project ActiveProject { get; set; }
+        public string OutputFilePath { get; set; }
         public HotReloadClientConnectionData ConnectionData { get; private set; }
 
         public event Action HotReloadStarted;
@@ -175,6 +176,7 @@ namespace HotReloadKit.Server
                             AdditionalTypeNames = additionaTypeNames,
                             Solution = Solution,
                             Project = ActiveProject,
+                            OutputFilePath = OutputFilePath,
                             ChangedFilePaths = changedFilePaths.ToList()
                         };
                     }

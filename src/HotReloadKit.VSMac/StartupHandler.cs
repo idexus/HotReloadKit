@@ -75,6 +75,7 @@ namespace HotReloadKit.VSMac
                     hotReloadServer.Solution = typeService.Workspace.CurrentSolution;
                     hotReloadServer.ActiveProject = typeService.Workspace.CurrentSolution.Projects
                         .FirstOrDefault(e => e.AssemblyName.Equals(assemblyName) && (platformName == null || e.Name.Contains(platformName)));
+                    hotReloadServer.OutputFilePath = GetDllOutputhPath(assemblyName);
 
                     memActiveProject = activeProject;
                     memActiveProject.FileChangedInProject += ActiveProject_FileChangedInProject;
@@ -92,6 +93,45 @@ namespace HotReloadKit.VSMac
                 Debug.WriteLine($"HotReloadKit session stopped");
             }
         }
+
+        string GetFrameworkShortName()
+        {
+            try
+            {
+                dynamic dynamic_target = IdeApp.Workspace.ActiveExecutionTarget;
+                return dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
+            }
+            catch { }
+            return null;
+        }
+
+        string GetAssemblyName()
+        {
+            var configuration = IdeApp.Workspace.ActiveConfiguration;
+            return activeProject.GetOutputFileName(configuration).FileNameWithoutExtension;
+        }
+
+        string GetDllOutputhPath(string activeProjectName)
+        {
+            try
+            {
+                var basePath = activeProject.MSBuildProject.BaseDirectory;
+
+                var configuration = IdeApp.Workspace.ActiveConfiguration;
+                var configurationName = configuration.ToString();
+
+                dynamic dynamic_target = IdeApp.Workspace.ActiveExecutionTarget;
+                string frameworkShortName = dynamic_target.FrameworkShortName; // e.g. "net7.0-maccatalyst"
+                string runtimeIdentifier = dynamic_target.RuntimeIdentifier; // "maccatalyst-x64"
+
+                var runtimeTail = frameworkShortName.Contains("maccatalyst") || frameworkShortName.Contains("ios") ? $"/{runtimeIdentifier}" : "";
+
+                return $"{basePath}/bin/{configurationName}/{frameworkShortName}{runtimeTail}/{activeProjectName}.dll";
+            }
+            catch { }
+            return null;
+        }
+
 
         void ActiveProject_FileChangedInProject(object sender, ProjectFileEventArgs args)
         {

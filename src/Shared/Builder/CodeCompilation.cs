@@ -19,6 +19,7 @@ namespace HotReloadKit.Builder
 
         public Solution Solution { get; set; }
         public Project Project { get; set; }
+        public string OutputFilePath { get; set; }
         public string[] AdditionalTypeNames { get; set; }
 
         public IEnumerable<string> ChangedFilePaths { get; set; }
@@ -96,7 +97,7 @@ namespace HotReloadKit.Builder
 
             // --------- metadata reference ---------
             List<MetadataReference> metadataReferences = new List<MetadataReference>();
-            metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(Project.OutputFilePath)));
+            metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(OutputFilePath ?? Project.OutputFilePath)));
             metadataReferences.AddRange(compilation.References);
 
             // --------- new compilation ------------
