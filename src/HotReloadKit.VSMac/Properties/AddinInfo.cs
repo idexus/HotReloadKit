@@ -5,7 +5,7 @@ using Mono.Addins.Description;
 [assembly:Addin (
     "HotReloadKit.VSMac",
 	Namespace = "HotReloadKit.VSMac",
-	Version = "0.4.0-beta.2"
+	Version = "0.4.0.1-beta"
 )]
 
 [assembly:AddinName ("HotReloadKit.VSMac")]
