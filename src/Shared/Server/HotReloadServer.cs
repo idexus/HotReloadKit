@@ -77,16 +77,21 @@ namespace HotReloadKit.Server
             _ = Task.Run(() =>
             {
                 lock(changedFilePaths)
-                {
-                    changedFilePaths.Add(fileName);
+                {                   
+                    if (!changedFilePaths.Contains(fileName))
+                        changedFilePaths.Add(fileName);
                 }
             });         
         }
 
+        static object releaseLock = new object();
         public void TrigChangedFiles()
         {
-            if (changedFilesSemaphoreTrig.CurrentCount == 0)
-                changedFilesSemaphoreTrig.Release();
+            lock (releaseLock)
+            {
+                if (changedFilesSemaphoreTrig.CurrentCount == 0)
+                    changedFilesSemaphoreTrig.Release();
+            }
         }
 
         public async Task StopServerAsync()
@@ -166,7 +171,7 @@ namespace HotReloadKit.Server
                 // ------- compilation ---------
                 
                 CodeCompilation codeCompilation = null;
-
+                
                 lock (changedFilePaths)
                 {
                     if (changedFilePaths.Count > 0)
@@ -177,8 +182,9 @@ namespace HotReloadKit.Server
                             Solution = Solution,
                             Project = ActiveProject,
                             OutputFilePath = OutputFilePath,
-                            ChangedFilePaths = changedFilePaths.ToList()
+                            RequestedFilePaths = changedFilePaths.ToList()
                         };
+                        changedFilePaths.Clear();
                     }
                 }
 
@@ -187,13 +193,14 @@ namespace HotReloadKit.Server
                     await codeCompilation.CompileAsync();
 
                     // ------- send data assembly ---------
-                    await codeCompilation.EmitDataAsync(async (string[] typeNames, byte[] dllData, byte[] pdbData) =>
+                    await codeCompilation.EmitDataAsync(async (string[] typeNames, string[] changedTypeNames, byte[] dllData, byte[] pdbData) =>
                     {
                         var hotReloadData = new HotReloadData
                         {
                             TypeNames = typeNames,
                             DllData = dllData,
-                            PdbData = pdbData
+                            PdbData = pdbData,
+                            ChangedTypeNames = changedTypeNames
                         };
                         await client.WriteAsync(JsonSerializer.Serialize(hotReloadData));
                     });

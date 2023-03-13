@@ -205,6 +205,7 @@ namespace HotReloadKit.VS
                     var fileName = Document.FullName;
                     Debug.WriteLine($"HotReloadKit --FILE CHANGED-- {fileName}");
                     hotReloadServer.AddChangedFile(fileName);
+                    await Task.Delay(100);
                     hotReloadServer.TrigChangedFiles();
                 }
             });

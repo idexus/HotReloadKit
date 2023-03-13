@@ -15,7 +15,7 @@ namespace HotReloadKit.Shared
     public class HotReloadServerConnectionData : HotReloadMessage
     {
         public static string DefaultToken => $@"<<|HotReloadKit|>>";
-        public static string CurrentVersion => $@"0.4.0-beta.1";
+        public static string CurrentVersion => $@"0.5.0-beta";
 
         public string Token { get; set; }
         public string Version { get; set; }
@@ -38,6 +38,7 @@ namespace HotReloadKit.Shared
     public class HotReloadData : HotReloadMessage
     {
         public string[] TypeNames { get; set; }
+        public string[] ChangedTypeNames { get; set; }
         public byte[] DllData { get; set; }
         public byte[] PdbData { get; set; }
     }
