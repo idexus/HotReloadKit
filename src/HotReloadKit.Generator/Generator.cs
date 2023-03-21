@@ -21,7 +21,7 @@ namespace HotReloadKit.Generator
 
             //------------- hot reload support ---------------
 
-            if (!context.Compilation.AssemblyName.Equals("Sharp.UI"))
+            if (!context.Compilation.AssemblyName.Equals("CodeMarkup.Maui"))
             {
                 var builder = new StringBuilder();
                 builder.AppendLine("//");
