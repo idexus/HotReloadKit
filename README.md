@@ -33,9 +33,7 @@ class Program
 
 Add it to your project
 
-```
-dotnet add package HotReloadKit
-```
+- [https://www.nuget.org/packages/HotReloadKit](https://www.nuget.org/packages/HotReloadKit)
 
 # Disclaimer
 
