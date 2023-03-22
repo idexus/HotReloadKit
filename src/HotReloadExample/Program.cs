@@ -9,26 +9,26 @@ class Program
     {
         HotReloader.Init<Program>(HotReloadSupport.IdeIPs);
         HotReloader.RequestAdditionalTypes = () => new string[] { "HotReloadExample.MyClass" };        
-        HotReloader.UpdateApplication = types =>
+        HotReloader.UpdateApplication = dataList =>
         {
-            foreach (var type in types) 
-                Console.WriteLine(type.FullName);
+            foreach (var data in dataList) 
+                Console.WriteLine($"{data.Type.FullName} isFromChangedFile: {data.IsFromChangedFile}");
         };
 
         Console.ReadLine();  
     }
-} 
+}
   
 class A
-{          
+{         
         
 }
 
 class B
-{  
+{    
      
 } 
-
+ 
 class C
 {
   

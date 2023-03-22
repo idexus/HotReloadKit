@@ -22,11 +22,12 @@ namespace HotReloadKit.Builder
         public string OutputFilePath { get; set; }
         public string[] AdditionalTypeNames { get; set; }
 
-        public IEnumerable<string> ChangedFilePaths { get; set; }
+        public IEnumerable<string> RequestedFilePaths { get; set; }
 
         // -- private --
 
         Compilation newCompilation;
+        List<string> allCompliedClassNames;
         List<string> changedClassNames;
 
         // ----------------------------------
@@ -46,7 +47,9 @@ namespace HotReloadKit.Builder
             // --------- syntax tree ----------
 
             List<SyntaxTree> syntaxTreeList = new List<SyntaxTree>();
-            List<SyntaxTree> changedFilesSyntaxTreeList = new List<SyntaxTree>();
+            List<SyntaxTree> changedSyntaxTreeList = new List<SyntaxTree>();
+
+            asseblyVersion++;
 
             // assembly name
             var versionSyntaxTree = CSharpSyntaxTree.ParseText($"[assembly: System.Reflection.AssemblyVersionAttribute(\"1.0.{asseblyVersion}\")]");
@@ -67,32 +70,56 @@ namespace HotReloadKit.Builder
                 syntaxTreeList.Add(usingsSyntaxTree);
             }
 
-            // collect changed and requested file paths
-            var changedAndRequestedFilePaths = compilation.SyntaxTrees
-                .Where(e =>
-                    !e.FilePath.EndsWith(".g.cs") &&
-                    (ChangedFilePaths.Contains(e.FilePath) ||
-                    GetClassNames(e).Intersect(AdditionalTypeNames).Count() > 0))
-                .Select(e => e.FilePath)
-                .ToList();
+            // changed file paths
+            var changedFilePaths = RequestedFilePaths
+                .Where(e => !e.EndsWith(".g.cs"));
 
-            // go through changed and requested files
-            foreach (var filePath in changedAndRequestedFilePaths)
+            // go through changed
+            foreach (var filePath in changedFilePaths)
             {
                 var codeText = await Task.Run(() => File.ReadAllText(filePath));
                 var syntaxTree = CSharpSyntaxTree.ParseText(codeText);
                 syntaxTreeList.Add(syntaxTree);
-                changedFilesSyntaxTreeList.Add(syntaxTree);
+                changedSyntaxTreeList.Add(syntaxTree);
             }
 
-            changedClassNames = GetClassNamesForChangedSyntaxTrees(changedFilesSyntaxTreeList);
+            changedClassNames = GetClassNamesForChangedSyntaxTrees(changedSyntaxTreeList);
+
+            // collect changed and requested file paths
+            var additionalFilePaths = compilation.SyntaxTrees
+                .Where(e =>
+                    !e.FilePath.EndsWith(".g.cs") && 
+                    !changedFilePaths.Contains(e.FilePath) &&
+                    GetClassNames(e).Intersect(AdditionalTypeNames).Count() > 0)
+                .Select(e => e.FilePath)
+                .ToList();
+
+            // go through additional
+            var additionalSyntaxTreeList = new List<SyntaxTree>();
+            foreach (var filePath in additionalFilePaths)
+            {
+                var codeText = await Task.Run(() => File.ReadAllText(filePath));
+                var syntaxTree = CSharpSyntaxTree.ParseText(codeText);
+                syntaxTreeList.Add(syntaxTree);
+                additionalSyntaxTreeList.Add(syntaxTree);
+            }
+
+            var additionalClassNames = GetClassNamesForChangedSyntaxTrees(additionalSyntaxTreeList).ToList();
+
+            allCompliedClassNames = new List<string>();
+            allCompliedClassNames.AddRange(changedClassNames);
+            allCompliedClassNames.AddRange(additionalClassNames);
+            allCompliedClassNames = allCompliedClassNames.Distinct().ToList();
+
+            var allCompliedFilePaths = changedFilePaths.ToList();
+            allCompliedFilePaths.AddRange(additionalFilePaths);
 
             // partial classes
             var partialSyntaxTrees = compilation.SyntaxTrees
                     .Where(e =>
                         !e.FilePath.EndsWith(".g.cs") &&
-                        GetClassNames(e).Intersect(changedClassNames).Count() > 0 &&
-                        !changedAndRequestedFilePaths.Contains(e.FilePath));
+                        GetClassNames(e).Intersect(allCompliedClassNames).Count() > 0 &&
+                        !allCompliedFilePaths.Contains(e.FilePath));
             syntaxTreeList.AddRange(partialSyntaxTrees);
 
             // --------- metadata reference ---------
@@ -114,7 +141,7 @@ namespace HotReloadKit.Builder
             generatorDriver.RunGeneratorsAndUpdateCompilation(newCompilationBeforeGenerators, out newCompilation, out var diagnostics);
         }
 
-        public async Task EmitDataAsync(Func<string[], byte[], byte[], Task> sendData)
+        public async Task EmitDataAsync(Func<string[], string[], byte[], byte[], Task> sendData)
         {
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
@@ -122,7 +149,7 @@ namespace HotReloadKit.Builder
                 var emitResult = newCompilation.Emit(dllStream, pdbStream);
                 if (emitResult.Success)
                 {
-                    await sendData(changedClassNames.ToArray(), dllStream.GetBuffer(), pdbStream.GetBuffer());
+                    await sendData(allCompliedClassNames.ToArray(), changedClassNames.ToArray(), dllStream.GetBuffer(), pdbStream.GetBuffer());
                 }
             }
         }

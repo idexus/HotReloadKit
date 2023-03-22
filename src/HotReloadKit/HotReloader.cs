@@ -8,14 +8,20 @@ using HotReloadKit.Shared;
 
 namespace HotReloadKit;
 
+public class HotReloadTypeData
+{
+    public Type Type { get; set; }
+    public bool IsFromChangedFile { get; set; }
+}
+
 public static class HotReloader
 {
     // public
 
     public const int DefaultTimeout = 1000;
 
-    public static Action<Type[]>? UpdateApplication { get; set; }
-    public static Func<string[]>? RequestAdditionalTypes { get; set; }
+    public static Action<HotReloadTypeData[]> UpdateApplication { get; set; }
+    public static Func<string[]> RequestAdditionalTypes { get; set; }
 
     // private
 
@@ -24,7 +30,7 @@ public static class HotReloader
 
     // tokens
 
-    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout, string? platformName = null)
+    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout, string platformName = null)
     {
         ClientConnectionData.PlatformName = platformName;
         ClientConnectionData.AssemblyName = typeof(T).Assembly.GetName().Name;
@@ -89,13 +95,16 @@ public static class HotReloader
                     var hotReloadData = JsonSerializer.Deserialize<HotReloadData>(message)!;
                     var assembly = Assembly.Load(hotReloadData.DllData!, hotReloadData.PdbData);
 
-                    var typeList = new List<Type>();
-                    foreach (var typeName in hotReloadData.TypeNames!)
+                    var typeDataList = new List<HotReloadTypeData>();
+                    foreach (var typeName in hotReloadData.TypeNames)
                     {
                         var type = assembly.GetType(typeName);
-                        if (type != null) typeList.Add(type);
+                        var isFromChangedFile = false;
+                        if (hotReloadData.ChangedTypeNames != null)                        
+                            isFromChangedFile = hotReloadData.ChangedTypeNames.Contains(typeName);
+                        if (type != null) typeDataList.Add(new HotReloadTypeData { Type = type, IsFromChangedFile = isFromChangedFile });
                     }
-                    UpdateApplication?.Invoke(typeList.ToArray());
+                    UpdateApplication?.Invoke(typeDataList.ToArray());
                 }
             }
         }

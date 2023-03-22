@@ -3,10 +3,10 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
 
         <PackageId>HotReloadKit</PackageId>
-	    <Version>0.4.0-beta.2</Version>
+	    <Version>0.5.0-beta</Version>
 	    <Authors>Pawel Krzywdzinski</Authors>
 	    <Copyright>Pawel Krzywdzinski</Copyright>
 	    <PackageDescription>Hot Reload Kit for VS2022 (Mac/Win)</PackageDescription>
