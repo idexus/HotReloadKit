@@ -13,10 +13,10 @@ class Program
     {
         HotReloader.Init<Program>(HotReloadSupport.IdeIPs);
         HotReloader.RequestAdditionalTypes = () => new string[] { "HotReloadExample.MyClass" };        
-        HotReloader.UpdateApplication = types =>
+        HotReloader.UpdateApplication = dataList =>
         {
-            foreach (var type in types) 
-                Console.WriteLine(type.FullName);
+            foreach (var data in dataList) 
+                Console.WriteLine($"{data.Type.FullName} isFromChangedFile: {data.IsFromChangedFile}");
         };
 
         Console.ReadLine();
@@ -33,9 +33,7 @@ class Program
 
 Add it to your project
 
-```
-dotnet add package HotReloadKit
-```
+- [https://www.nuget.org/packages/HotReloadKit](https://www.nuget.org/packages/HotReloadKit)
 
 # Disclaimer
 
