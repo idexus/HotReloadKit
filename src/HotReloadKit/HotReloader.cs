@@ -30,7 +30,7 @@ public static class HotReloader
 
     // tokens
 
-    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout, string? platformName = null)
+    public static void Init<T>(IPAddress[] serverIPs, int timeout = DefaultTimeout, string platformName = null)
     {
         ClientConnectionData.PlatformName = platformName;
         ClientConnectionData.AssemblyName = typeof(T).Assembly.GetName().Name;
