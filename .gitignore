@@ -3,6 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+src/HotReloadKit.VSCode/service
+src/HotReloadKit.VSCode/out
+src/HotReloadKit.VSCode/HotReloadKit.VSCodeService.zip
+src/HotReloadKit.VSCodeService/published
+
 .DS_Store
 *.HotReloadSupport.g.cs
 Assembly.cs
