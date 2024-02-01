@@ -1,8 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as unzipper from 'unzipper';
 import { exec, ExecException } from 'child_process';
 import * as vscode from 'vscode';
+
+import * as unzipper from 'unzipper';
 
 function fileExists(filePath: string): boolean {
     try {
@@ -13,51 +14,44 @@ function fileExists(filePath: string): boolean {
     }
 }
 
-async function unpackFromAndCompileServiceTo(zipFilePath: string, extractionPath: string) {
-    
-    const readStream = fs.createReadStream(zipFilePath);
+// zip -r service.zip HotReloadKit.VSCodeService Shared
 
-    readStream
-        .pipe(unzipper.Extract({ path: extractionPath }))
-        .on('close', () => {
-            console.log('Service unpacked successfully.');
-            compileService(extractionPath);
-        })
-        .on('error', (err) => {
-            console.error(`Error unpacking service: ${err.message}`);
-        });
-}
+async function unzipFiles(filePath: string, extractionPath: string) {
 
-function compileService(extractionPath: string) {
-    const buildCommand = `dotnet publish HotReloadKit.VSCodeService.csproj -c Release -o ./published`;
+    const readStream = fs.createReadStream(filePath);
+    const writeStream = unzipper.Extract({ path: extractionPath });
 
-    const servicePath = path.join(extractionPath, 'HotReloadKit.VSCodeService');
+    readStream.pipe(writeStream);
 
-    exec(buildCommand, { cwd: servicePath }, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error compiling service: ${error}`);
-            return;
-        }
-        console.log(`Service compiled successfully.`, stdout);
+    await new Promise<void>((resolve, reject) => {    
+        writeStream.on('close', () => resolve());
+        writeStream.on('error', (error) => reject(error));
     });
 }
 
-export async function unpackAndCompileService() {
-    const extensionPath = vscode.extensions.getExtension('idexus.hotreloadkit')!.extensionPath;
+async function compileDotnetProject(projectPath: string, servicePath: string) {
 
-    const zipFilePath = path.join(extensionPath, 'HotReloadKit.VSCodeService.zip');
-    const extractionPath = path.join(extensionPath, 'service');
+    const buildCommand = `dotnet publish -c Release -o ${servicePath}`;
 
-    await unpackFromAndCompileServiceTo(zipFilePath, extractionPath);
+    await new Promise((resolve, reject) => {
+
+        exec(buildCommand, { cwd: projectPath }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error compiling project in ${projectPath}: ${error}`);
+                return;
+            }
+            console.log(`Project in ${projectPath} compiled successfully.`, stdout);
+        });
+    });
 }
 
-function runDotnetService(servicePath: string, serviceName: string): void {
+function runDotnetService(servicePath: string, serviceDllName: string): void {
 
-    const runCommand = `dotnet ${serviceName}`;
+    const runCommand = `dotnet ${serviceDllName}`;
 
     const serviceProcess = exec(runCommand, { cwd: servicePath }, (error: ExecException | null, stdout: string, stderr: string) => {
         if (error) {
-            console.error(`Error running the service: ${error.message}`);
+            console.error(`Error running ${serviceDllName}: ${error.message}`);
             return;
         }
         console.log(`Service stdout: ${stdout}`);
@@ -80,12 +74,18 @@ function runDotnetService(servicePath: string, serviceName: string): void {
 export async function unpackCompileAndRunService() {
     
     const extensionPath = vscode.extensions.getExtension('idexus.hotreloadkit')!.extensionPath;
-    const servicePath = path.join(extensionPath, 'service', 'HotReloadKit.VSCodeService', 'published');
-    const serviceName = 'HotReloadKit.VSCodeService.dll';
-    const serviceFullPath = path.join(servicePath, serviceName);
-    
-    if (!fileExists(serviceFullPath)) {
-        await unpackAndCompileService();
-    }
-    runDotnetService(servicePath, serviceName);
+
+    const zipFilePath = path.join(extensionPath, 'service.zip');
+    const mainServicePath = path.join(extensionPath, 'service');
+    const sourcePath = path.join(mainServicePath, 'src');
+
+    await unzipFiles(zipFilePath, sourcePath);
+
+    const serviceName = 'HotReloadKit.VSCodeService';
+    const serviceDllName = serviceName + '.dll';
+    const projectPath = path.join(sourcePath, serviceName);
+    const publishedPath = path.join(mainServicePath, 'published');
+
+    await compileDotnetProject(projectPath, publishedPath);
+    runDotnetService(publishedPath, serviceDllName);
 }
