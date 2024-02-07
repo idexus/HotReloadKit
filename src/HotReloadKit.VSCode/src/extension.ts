@@ -4,11 +4,9 @@ import * as vscode from 'vscode';
 import * as serviceClient from './serviceClient';
 import * as path from 'path';
 
+var projectPath: string | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
-
-	// serviceInstaller.unpackCompileAndRunService();
-
-	var projectPath: string | undefined;
 
 	context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(async document => {
 		
@@ -34,9 +32,18 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}));
 
-	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(session => {
+	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(async session => {
 		if (session.configuration.project === projectPath) {
+
 			projectPath = undefined;
+
+			const dataToSend = {
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				ProjectPath: session.configuration.project,
+			};
+
+			const response = await serviceClient.sendData("debugTerminated", dataToSend);
+
 		}
 	}));
 

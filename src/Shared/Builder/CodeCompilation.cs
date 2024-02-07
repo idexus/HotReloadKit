@@ -36,8 +36,8 @@ namespace HotReloadKit.Builder
         public async Task CompileAsync()
         {
             // ------ Microsoft.CodeAnalysis projects ------
-
-            var referencedProjects = Project.ProjectReferences?.Select(e => Solution.Projects.FirstOrDefault(x => x.Id == e.ProjectId));
+            var solution = Solution ?? Project.Solution; 
+            var referencedProjects = Project.ProjectReferences?.Select(e => solution.Projects.FirstOrDefault(x => x.Id == e.ProjectId));
             var generators = Project.AnalyzerReferences.SelectMany(e => e.GetGeneratorsForAllLanguages());
             var includedProjects = referencedProjects?.ToList() ?? new List<Microsoft.CodeAnalysis.Project>();
             includedProjects.Add(Project);

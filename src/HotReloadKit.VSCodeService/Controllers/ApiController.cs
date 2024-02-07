@@ -1,66 +1,62 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Sockets;
-using HotReloadKit.Server;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using SlimTcpServer;
+using System.Diagnostics;
+using HotReloadKit.Server;
+
 
 [Route("api")]
 [ApiController]
 public class ApiController : ControllerBase
 {
-    Dictionary<string, ProjectInfo> activeProjects = new Dictionary<string, ProjectInfo>();
-
-    HotReloadServer hotReloadServer;
-
+    static HotReloadServer? hotReloadServer;
+    
     [HttpPost("debugStarted")]
-    public async Task<IActionResult> DebugStartedAsync([FromBody] DebugInfo data)
+    public async Task<IActionResult> DebugStartedAsync([FromBody] DebugInfo debugInfo)
     {
         try
         {
-            var workspace = MSBuildWorkspace.Create();
-            var project = await workspace.OpenProjectAsync(data.ProjectPath);
-
-            activeProjects[data.ProjectPath] = new ProjectInfo
+            if (hotReloadServer == null)
             {
-                DebugInfo = data,
+                hotReloadServer = new HotReloadServer();
+                await hotReloadServer.StartServerAsync();
+                Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+            }
+            var workspace = MSBuildWorkspace.Create();
+            var project = await workspace.OpenProjectAsync(debugInfo.ProjectPath);
+            
+            hotReloadServer.RegisterProject(new ProjectInfo
+            {
+                DebugInfo = debugInfo,
                 Project = project,
                 Workspace = workspace
-            };
+            });
 
-            return Ok("DebugInfo received and processed successfully.");
+            return Ok($"Debug started - project {debugInfo.ProjectPath}");
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {            
             throw;
         }
-        
     }
 
     [HttpPost("fileChanged")]
     public IActionResult FileChanged([FromBody] FileChangedInfo data)
     {
+        hotReloadServer?.AddChangedFile(data.ProjectPath, data.FilePath);
+        hotReloadServer?.TrigChangedFiles(data.ProjectPath);
         return Ok("File changed received and processed");
     }
 
-    SemaphoreSlim sessionSemaphore = new SemaphoreSlim(1);
-    async Task RunHotReloadServer()
+    [HttpPost("debugTerminated")]
+    public IActionResult DebugTerminated([FromBody] DebugTerminatedInfo data)
     {
-        await sessionSemaphore.WaitAsync();
-
-        hotReloadServer = new HotReloadServer();
-        hotReloadServer.HotReloadStarted += StartHotReloadSession;
-        hotReloadServer.HotReloadStopped += StopHotReloadSession;
-
-        await hotReloadServer.StartServerAsync();
-
-        await Task.Delay(1000);
-        await IdeServices.ProjectOperations.CurrentRunOperation.Task;
-        await hotReloadServer.StopServerAsync();
-
-        sessionSemaphore.Release();
+        hotReloadServer?.UnregisterProject(data.ProjectPath);
+        return Ok($"Debug terminated - {data.ProjectPath}");
     }
-
-    
+    // ------------------
 }
 
 public class FileChangedInfo
@@ -69,11 +65,28 @@ public class FileChangedInfo
     public required string FilePath { get; set; }
 }
 
+public class DebugTerminatedInfo
+{
+    public required string ProjectPath { get; set; }
+}
+
 public class ProjectInfo
 {
     public required DebugInfo DebugInfo { get; set; }
     public required MSBuildWorkspace Workspace { get; set; }
     public required Project Project { get; set; }
+    public string? OutputFilePath { get; set; }
+}
+
+public class DebugContext
+{
+    public required ProjectInfo ProjectInfo { get; set; }
+    public SemaphoreSlim changedFilesSemaphoreTrig = new SemaphoreSlim(0);
+    public int asseblyVersion = 0;
+    public readonly List<string> changedFilePaths = new List<string>();
+    public Action? HotReloadStarted;
+    public Action? HotReloadStopped;
+    public Guid? ClientGuid;
 }
 
 public class DebugInfo
