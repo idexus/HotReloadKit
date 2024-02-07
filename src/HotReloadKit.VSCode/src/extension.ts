@@ -6,7 +6,9 @@ import * as path from 'path';
 
 var projectPath: string | undefined;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+
+	await serviceInstaller.unpackCompileAndRunService();
 
 	context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(async document => {
 		
@@ -35,6 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(async session => {
 		if (session.configuration.project === projectPath) {
 
+			vscode.window.showInformationMessage(`HotReloadKit: Debug Session Terminated`);
+
 			projectPath = undefined;
 
 			const dataToSend = {
@@ -43,7 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 
 			const response = await serviceClient.sendData("debugTerminated", dataToSend);
-
 		}
 	}));
 

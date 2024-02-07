@@ -33,25 +33,29 @@ async function compileDotnetProject(projectPath: string, servicePath: string) {
 
     const buildCommand = `dotnet publish -c Release -o ${servicePath}`;
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
 
         exec(buildCommand, { cwd: projectPath }, (error, stdout, stderr) => {
             if (error) {
-                console.error(`Error compiling project in ${projectPath}: ${error}`);
+                const reason = `Error compiling project in ${projectPath}: ${error}`; 
+                console.error(reason);
+                reject(reason);
                 return;
             }
             console.log(`Project in ${projectPath} compiled successfully.`, stdout);
+            resolve();
         });
     });
 }
 
-function runDotnetService(servicePath: string, serviceDllName: string): void {
+function runDotnetService(servicePath: string, serviceDllName: string) {
 
     const runCommand = `dotnet ${serviceDllName}`;
 
     const serviceProcess = exec(runCommand, { cwd: servicePath }, (error: ExecException | null, stdout: string, stderr: string) => {
         if (error) {
-            console.error(`Error running ${serviceDllName}: ${error.message}`);
+            var reason = `Error running ${serviceDllName}: ${error.message}`;
+            console.error(reason);
             return;
         }
         console.log(`Service stdout: ${stdout}`);
@@ -68,6 +72,14 @@ function runDotnetService(servicePath: string, serviceDllName: string): void {
 
     serviceProcess.on('exit', (code: number) => {
         console.log(`Service process exited with code ${code}`);
+    });
+}
+
+function delay(milliseconds: number): Promise<void> {
+    return new Promise<void>((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, milliseconds);
     });
 }
 

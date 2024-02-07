@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseUrl = 'http://localhost:5143'; 
+const baseUrl = 'http://localhost:5098'; 
 
 export async function sendData(endpoint: string, data: any): Promise<any> {
   try {

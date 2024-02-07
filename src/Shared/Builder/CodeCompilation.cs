@@ -56,13 +56,13 @@ namespace HotReloadKit.Builder
 
             // global usings
             var usings = compilation.SyntaxTrees
-                    .SelectMany(e => e
-                        .GetRoot()
-                        .DescendantNodes().OfType<UsingDirectiveSyntax>()
-                        .Where(u => u.GlobalKeyword.ValueText == "global"))
-                    .Select(e => e.ToString())
-                    .Distinct()
-                    .ToList();
+                .SelectMany(e => e
+                    .GetRoot()
+                    .DescendantNodes().OfType<UsingDirectiveSyntax>()
+                    .Where(u => u.GlobalKeyword.ValueText == "global"))
+                .Select(e => e.ToString())
+                .Distinct()
+                .ToList();
             if (usings.Count > 0)
             {
                 var usingsText = string.Join("\n", usings);
@@ -102,7 +102,7 @@ namespace HotReloadKit.Builder
                 var syntaxTree = CSharpSyntaxTree.ParseText(codeText);
                 syntaxTreeList.Add(syntaxTree);
                 additionalSyntaxTreeList.Add(syntaxTree);
-            }
+            } 
 
             var additionalClassNames = GetClassNamesForChangedSyntaxTrees(additionalSyntaxTreeList).ToList();
 

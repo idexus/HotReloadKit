@@ -12,7 +12,15 @@ using HotReloadKit.Server;
 public class ApiController : ControllerBase
 {
     static HotReloadServer? hotReloadServer;
-    
+
+
+    Platform GetPlatform(DebugInfo debugInfo) => (debugInfo.RuntimeIdentifier) switch
+    {
+        "maccatalyst-x64" => Platform.X64,
+        "maccatalyst-arm64" => Platform.Arm64,
+        _ => Platform.X64
+    };
+
     [HttpPost("debugStarted")]
     public async Task<IActionResult> DebugStartedAsync([FromBody] DebugInfo debugInfo)
     {
@@ -26,12 +34,18 @@ public class ApiController : ControllerBase
             }
             var workspace = MSBuildWorkspace.Create();
             var project = await workspace.OpenProjectAsync(debugInfo.ProjectPath);
-            
+
+            project.CompilationOptions?.WithPlatform(GetPlatform(debugInfo));
+            var platform = GetPlatform(debugInfo);
+            var options = project.CompilationOptions!.WithPlatform(platform);
+            var updatedProject = project.WithCompilationOptions(options);
+            var outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
             hotReloadServer.RegisterProject(new ProjectInfo
             {
                 DebugInfo = debugInfo,
                 Project = project,
-                Workspace = workspace
+                Workspace = workspace,
+                OutputFilePath = outputFilePath
             });
 
             return Ok($"Debug started - project {debugInfo.ProjectPath}");
