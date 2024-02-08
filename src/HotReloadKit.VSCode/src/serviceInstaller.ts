@@ -75,14 +75,6 @@ function runDotnetService(servicePath: string, serviceDllName: string) {
     });
 }
 
-function delay(milliseconds: number): Promise<void> {
-    return new Promise<void>((resolve) => {
-        setTimeout(() => {
-            resolve();
-        }, milliseconds);
-    });
-}
-
 export async function unpackCompileAndRunService() {
     
     const extensionPath = vscode.extensions.getExtension('idexus.hotreloadkit')!.extensionPath;

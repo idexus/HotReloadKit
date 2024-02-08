@@ -14,41 +14,49 @@ public class ApiController : ControllerBase
     static HotReloadServer? hotReloadServer;
 
 
-    Platform GetPlatform(DebugInfo debugInfo) => (debugInfo.RuntimeIdentifier) switch
+    Platform GetPlatform(DebugInfo debugInfo) 
     {
-        "maccatalyst-x64" => Platform.X64,
-        "maccatalyst-arm64" => Platform.Arm64,
-        _ => Platform.X64
-    };
+        if (debugInfo.RuntimeIdentifier.EndsWith("arm64")) return Platform.Arm64;
+        return Platform.X64;
+    }
+
+    [HttpGet("startService")]
+    public async Task<IActionResult> StartServiceAsync()
+    {
+        if (hotReloadServer == null)
+        {
+            hotReloadServer = new HotReloadServer();
+            await hotReloadServer.StartServerAsync();
+            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+        }
+        return Ok($"Service started");
+    }
 
     [HttpPost("debugStarted")]
     public async Task<IActionResult> DebugStartedAsync([FromBody] DebugInfo debugInfo)
     {
         try
         {
-            if (hotReloadServer == null)
+            if (hotReloadServer != null)
             {
-                hotReloadServer = new HotReloadServer();
-                await hotReloadServer.StartServerAsync();
-                Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+                var workspace = MSBuildWorkspace.Create();
+                var project = await workspace.OpenProjectAsync(debugInfo.ProjectPath);
+
+                project.CompilationOptions?.WithPlatform(GetPlatform(debugInfo));
+                var platform = GetPlatform(debugInfo);
+                var options = project.CompilationOptions!.WithPlatform(platform);
+                var updatedProject = project.WithCompilationOptions(options);
+                var outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
+                hotReloadServer.RegisterProject(new ProjectInfo
+                {
+                    DebugInfo = debugInfo,
+                    Project = updatedProject,
+                    Workspace = workspace,
+                    OutputFilePath = outputFilePath
+                });
             }
-            var workspace = MSBuildWorkspace.Create();
-            var project = await workspace.OpenProjectAsync(debugInfo.ProjectPath);
 
-            project.CompilationOptions?.WithPlatform(GetPlatform(debugInfo));
-            var platform = GetPlatform(debugInfo);
-            var options = project.CompilationOptions!.WithPlatform(platform);
-            var updatedProject = project.WithCompilationOptions(options);
-            var outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
-            hotReloadServer.RegisterProject(new ProjectInfo
-            {
-                DebugInfo = debugInfo,
-                Project = project,
-                Workspace = workspace,
-                OutputFilePath = outputFilePath
-            });
-
-            return Ok($"Debug started - project {debugInfo.ProjectPath}");
+            return Ok($"Debug started");
         }
         catch (System.Exception)
         {            
@@ -68,7 +76,7 @@ public class ApiController : ControllerBase
     public IActionResult DebugTerminated([FromBody] DebugTerminatedInfo data)
     {
         hotReloadServer?.UnregisterProject(data.ProjectPath);
-        return Ok($"Debug terminated - {data.ProjectPath}");
+        return Ok($"Debug terminated");
     }
     // ------------------
 }
