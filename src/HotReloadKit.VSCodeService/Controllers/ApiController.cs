@@ -42,18 +42,28 @@ public class ApiController : ControllerBase
                 var workspace = MSBuildWorkspace.Create();
                 var project = await workspace.OpenProjectAsync(debugInfo.ProjectPath);
 
-                project.CompilationOptions?.WithPlatform(GetPlatform(debugInfo));
-                var platform = GetPlatform(debugInfo);
-                var options = project.CompilationOptions!.WithPlatform(platform);
-                var updatedProject = project.WithCompilationOptions(options);
-                var outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
-                hotReloadServer.RegisterProject(new ProjectInfo
+                if (debugInfo.Type == "maui")
                 {
-                    DebugInfo = debugInfo,
-                    Project = updatedProject,
-                    Workspace = workspace,
-                    OutputFilePath = outputFilePath
-                });
+                    project.CompilationOptions?.WithPlatform(GetPlatform(debugInfo));
+                    var platform = GetPlatform(debugInfo);
+                    var options = project.CompilationOptions!.WithPlatform(platform);
+                    var updatedProject = project.WithCompilationOptions(options);
+                    var outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
+                    hotReloadServer.RegisterProject(new ProjectInfo
+                    {
+                        DebugInfo = debugInfo,
+                        Project = updatedProject,
+                        OutputFilePath = outputFilePath
+                    });
+                }
+                else
+                {
+                    hotReloadServer.RegisterProject(new ProjectInfo
+                    {
+                        DebugInfo = debugInfo,
+                        Project = project,
+                    });
+                }
             }
 
             return Ok($"Debug started");
@@ -95,7 +105,7 @@ public class DebugTerminatedInfo
 public class ProjectInfo
 {
     public required DebugInfo DebugInfo { get; set; }
-    public required MSBuildWorkspace Workspace { get; set; }
+    // public required MSBuildWorkspace Workspace { get; set; }
     public required Project Project { get; set; }
     public string? OutputFilePath { get; set; }
 }
