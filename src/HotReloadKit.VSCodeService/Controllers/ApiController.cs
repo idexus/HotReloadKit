@@ -44,15 +44,24 @@ public class ApiController : ControllerBase
 
                 if (debugInfo.Type == "maui")
                 {
-                    project.CompilationOptions?.WithPlatform(GetPlatform(debugInfo));
-                    var platform = GetPlatform(debugInfo);
-                    var options = project.CompilationOptions!.WithPlatform(platform);
-                    var updatedProject = project.WithCompilationOptions(options);
-                    var outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
+                    string outputFilePath;
+                    
+                    if (debugInfo.RuntimeIdentifier != "undefined")
+                    {
+                        var platform = GetPlatform(debugInfo);
+                        var options = project.CompilationOptions!.WithPlatform(platform);
+                        project = project.WithCompilationOptions(options);
+                        outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
+                    }
+                    else
+                    {
+                        outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, project.AssemblyName + ".dll");
+                    }
+
                     hotReloadServer.RegisterProject(new ProjectInfo
                     {
                         DebugInfo = debugInfo,
-                        Project = updatedProject,
+                        Project = project,
                         OutputFilePath = outputFilePath
                     });
                 }

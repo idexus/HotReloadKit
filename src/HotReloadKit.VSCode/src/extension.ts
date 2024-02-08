@@ -31,7 +31,7 @@ async function startService() : Promise<boolean> {
 
 export async function activate(context: vscode.ExtensionContext) {
 
-	//await serviceInstaller.unpackCompileAndRunService();
+	await serviceInstaller.unpackCompileAndRunService();
 
 	if (!await startService()) {
 		vscode.window.showInformationMessage(`HotReloadKit: Initialization Error.`);
@@ -65,12 +65,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.debug.onDidTerminateDebugSession(async session => {
 		if (session.configuration.project === projectPath) {
 
+			var path = session.configuration.project ?? session.configuration.projectPath;
+
 			vscode.window.showInformationMessage(`HotReloadKit: Debug Session Terminated`);
 			projectPath = undefined;
 
 			const dataToSend = {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				ProjectPath: session.configuration.project,
+				ProjectPath: path,
 			};
 
 			const response = await serviceClient.sendData("debugTerminated", dataToSend);
@@ -81,28 +83,30 @@ export async function activate(context: vscode.ExtensionContext) {
 
 		try {
 
+			var path = session.configuration.project ?? session.configuration.projectPath;
+
 			const dataToSend = {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				Configuration: session.configuration.configuration,
+				Configuration: session.configuration.configuration ?? "undefined",
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				Type: session.configuration.type,
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				ProjectPath: session.configuration.project,
+				ProjectPath: path,
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				WorkspaceDirectory: session.configuration.workspaceDirectory,
+				WorkspaceDirectory: session.configuration.workspaceDirectory ?? "undefined",
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				RuntimeIdentifier: session.configuration.runtimeIdentifier,
+				RuntimeIdentifier: session.configuration.runtimeIdentifier ?? "undefined",
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				TargetFramework: session.configuration.targetFramework,
+				TargetFramework: session.configuration.targetFramework ?? "undefined",
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				Platform: session.configuration.platform,
+				Platform: session.configuration.platform ?? "undefined"
 			};
 
 			const response = await serviceClient.sendData("debugStarted", dataToSend);
 			console.log('Response from HotReloadService:', response);
 
 			if (response === "Debug started") {
-				projectPath = session.configuration.project;
+				projectPath = path;
 				vscode.window.showInformationMessage(`HotReloadKit: Debug Session Started`);
 			}
 		} catch (error) {
