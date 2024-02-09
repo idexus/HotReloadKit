@@ -1,10 +1,16 @@
 import axios from 'axios';
 
-const baseUrl = 'http://localhost:5098'; 
+var portNo = 5095;
+const baseUrl = 'http://localhost'; 
+
+export function setPort(port: number) {
+  portNo = port;  
+}
 
 export async function sendData(endpoint: string, data: any): Promise<any> {
   try {
-    const response = await axios.post(`${baseUrl}/api/${endpoint}`, data, {
+    var url = `${baseUrl}:${portNo}/api/${endpoint}`;
+    const response = await axios.post(url, data, {
       headers: {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'Content-Type': 'application/json',
@@ -19,7 +25,8 @@ export async function sendData(endpoint: string, data: any): Promise<any> {
 
 export async function send(endpoint: string): Promise<any> {
   try {
-    const response = await axios.get(`${baseUrl}/api/${endpoint}`);
+    var url = `${baseUrl}:${portNo}/api/${endpoint}`;
+    const response = await axios.get(url);
     return response.data;
   } catch (error) {
     throw error;

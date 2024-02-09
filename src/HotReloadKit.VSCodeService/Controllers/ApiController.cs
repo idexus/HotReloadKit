@@ -28,8 +28,15 @@ public class ApiController : ControllerBase
             hotReloadServer = new HotReloadServer();
             await hotReloadServer.StartServerAsync();
             Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+            return Ok($"HotReloadKit service started");
         }
-        return Ok($"Service started");
+        return BadRequest();
+    }
+
+    [HttpGet("checkService")]
+    public IActionResult CheckService()
+    {
+        return Ok($"HotReloadKit service is working");
     }
 
     [HttpPost("debugStarted")]

@@ -3,7 +3,9 @@
   "publisher": "idexus",
   "displayName": "HotReloadKit",
   "description": "C# Hot Reload Kit",
-  "version": "0.0.1",
+  "repository": "https://github.com/idexus/HotReloadKit",
+  "version": "0.5.0",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },

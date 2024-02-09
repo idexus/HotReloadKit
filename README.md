@@ -1,6 +1,8 @@
 # HotReloadKit
 
-Hot Reload Kit for VS2022 for Mac and Windows
+HotReloadKit is an extension tailored for C# .NET Core projects, delivering efficient hot reloading capabilities. Compatible with Visual Studio Code and Visual Studio 2022 for Mac and Windows, as well as .NET MAUI projects, it's a tool utilized by Sharp.UI, a library simplifying UI development with fluent methods.
+
+- [Sharp.UI GitHub Repository](https://github.com/idexus/Sharp.UI)
 
 # Usage 
 
@@ -24,10 +26,11 @@ class Program
 } 
 ```
 
-# VS2022 extensions
+# VS extensions
 
-- [mpack package for VS for Mac](https://github.com/idexus/HotReloadKit/releases)
-- [vsix package for VS for Windows](https://github.com/idexus/HotReloadKit/releases)
+- [vsix package for VS Code](https://github.com/idexus/HotReloadKit/releases)
+- [vsix package for VS2022 for Windows](https://github.com/idexus/HotReloadKit/releases)
+- [mpack package for VS2022 for Mac](https://github.com/idexus/HotReloadKit/releases)
 
 # Nuget package
 
@@ -41,4 +44,6 @@ There is no official support. Use at your own risk.
 
 # License
 
-License MIT, Copyright (c) 2023 Pawel Krzywdzinski
+Licensed under the MIT License. © 2023 Pawel Krzywdzinski
+
+**Enjoy!**
