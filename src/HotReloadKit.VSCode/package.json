@@ -17,13 +17,6 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "hotreloadkit.startService",
-        "title": "Start HotReloadKit Service",
-        "category": "HotReloadKit"
-      }
-    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
