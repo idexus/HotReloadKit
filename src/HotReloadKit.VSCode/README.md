@@ -1,6 +1,6 @@
 # HotReloadKit
 
-HotReloadKit is an extension tailored for C# .NET Core projects, delivering efficient hot reloading capabilities. Compatible with .NET MAUI projects, it's a tool utilized by Sharp.UI, a library simplifying UI development with fluent methods.
+HotReloadKit is an extension designed for C# .NET Core projects, providing efficient hot reloading capabilities. Compatible with .NET MAUI projects, it's a crucial tool utilized by Sharp.UI, a library simplifying .NET MAUI development with fluent methods solely in C# code.
 
 - [Sharp.UI GitHub Repository](https://github.com/idexus/Sharp.UI)
 
