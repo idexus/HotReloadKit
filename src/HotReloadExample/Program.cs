@@ -20,16 +20,16 @@ class Program
 }
   
 class A
-{         
-        
-}
-
-class B
-{    
-     
-} 
+{
  
+}
+ 
+class B
+{     
+      
+} 
+  
 class C
 {
   
-}
+} 
