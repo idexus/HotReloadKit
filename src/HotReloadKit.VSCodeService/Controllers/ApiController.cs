@@ -104,7 +104,6 @@ public class ProjectInfo
     public required DebugInfo DebugInfo { get; set; }
     // public required MSBuildWorkspace Workspace { get; set; }
     public required Project Project { get; set; }
-    public string? OutputFilePath { get; set; }
 }
 
 public class DebugContext

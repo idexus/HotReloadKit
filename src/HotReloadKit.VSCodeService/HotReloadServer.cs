@@ -163,9 +163,7 @@ namespace HotReloadKit.Server
                         codeCompilation = new CodeCompilation
                         {
                             AdditionalTypeNames = additionaTypeNames,
-                            Solution = null, //Solution,
                             Project = context.ProjectInfo.Project,
-                            OutputFilePath = context.ProjectInfo.OutputFilePath,
                             RequestedFilePaths = context.changedFilePaths.ToList()
                         };
                         context.changedFilePaths.Clear();
