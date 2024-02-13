@@ -3,8 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-src/HotReloadKit.VSCode/hotreloadkit-0.5.0.vsix
+src/HotReloadKit.VSCode/*.vsix
 src/HotReloadKit.VSCode/service
+src/HotReloadKit.VSCode/service.zip
 src/HotReloadKit.VSCode/out
 src/HotReloadKit.VSCodeService/published
 
