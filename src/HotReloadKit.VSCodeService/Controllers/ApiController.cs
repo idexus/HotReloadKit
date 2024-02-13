@@ -36,7 +36,9 @@ public class ApiController : ControllerBase
     [HttpGet("checkService")]
     public IActionResult CheckService()
     {
-        return Ok($"HotReloadKit service is working");
+        if (hotReloadServer != null)
+            return Ok($"HotReloadKit service is working");
+        return BadRequest();
     }
 
     [HttpPost("debugStarted")]
@@ -46,40 +48,19 @@ public class ApiController : ControllerBase
         {
             if (hotReloadServer != null)
             {
-                var workspace = MSBuildWorkspace.Create();
+                var properties = new Dictionary<string, string>();
+
+                if (debugInfo.RuntimeIdentifier != "undefined") properties.Add("RuntimeIdentifier", debugInfo.RuntimeIdentifier);
+                if (debugInfo.TargetFramework != "undefined") properties.Add("TargetFramework", debugInfo.TargetFramework);
+
+                var workspace = MSBuildWorkspace.Create(properties);
                 var project = await workspace.OpenProjectAsync(debugInfo.ProjectPath);
 
-                if (debugInfo.Type == "maui")
+                hotReloadServer.RegisterProject(new ProjectInfo
                 {
-                    string outputFilePath;
-                    
-                    if (debugInfo.RuntimeIdentifier != "undefined")
-                    {
-                        var platform = GetPlatform(debugInfo);
-                        var options = project.CompilationOptions!.WithPlatform(platform);
-                        project = project.WithCompilationOptions(options);
-                        outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, debugInfo.RuntimeIdentifier, project.AssemblyName + ".dll");
-                    }
-                    else
-                    {
-                        outputFilePath = Path.Combine(Path.GetDirectoryName(debugInfo.ProjectPath)!, "bin", debugInfo.Configuration, debugInfo.TargetFramework, project.AssemblyName + ".dll");
-                    }
-
-                    hotReloadServer.RegisterProject(new ProjectInfo
-                    {
-                        DebugInfo = debugInfo,
-                        Project = project,
-                        OutputFilePath = outputFilePath
-                    });
-                }
-                else
-                {
-                    hotReloadServer.RegisterProject(new ProjectInfo
-                    {
-                        DebugInfo = debugInfo,
-                        Project = project,
-                    });
-                }
+                    DebugInfo = debugInfo,
+                    Project = project,
+                });
             }
 
             return Ok($"Debug started");

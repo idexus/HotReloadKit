@@ -125,7 +125,7 @@ namespace HotReloadKit.Builder
             // --------- metadata reference ---------
             List<MetadataReference> metadataReferences = new List<MetadataReference>();
             metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(OutputFilePath ?? Project.OutputFilePath)));
-            metadataReferences.AddRange(compilation.References);
+            metadataReferences.AddRange(Project.MetadataReferences);
 
             // --------- new compilation ------------
 
@@ -145,7 +145,7 @@ namespace HotReloadKit.Builder
         {
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
-            {
+            {               
                 var emitResult = newCompilation.Emit(dllStream, pdbStream);
                 if (emitResult.Success)
                 {
