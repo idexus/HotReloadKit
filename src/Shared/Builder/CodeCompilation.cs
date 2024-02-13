@@ -17,9 +17,7 @@ namespace HotReloadKit.Builder
 
         // -- public properties --
 
-        public Solution Solution { get; set; }
         public Project Project { get; set; }
-        public string OutputFilePath { get; set; }
         public string[] AdditionalTypeNames { get; set; }
 
         public IEnumerable<string> RequestedFilePaths { get; set; }
@@ -36,8 +34,7 @@ namespace HotReloadKit.Builder
         public async Task CompileAsync()
         {
             // ------ Microsoft.CodeAnalysis projects ------
-            var solution = Solution ?? Project.Solution; 
-            var referencedProjects = Project.ProjectReferences?.Select(e => solution.Projects.FirstOrDefault(x => x.Id == e.ProjectId));
+            var referencedProjects = Project.ProjectReferences?.Select(e => Project.Solution.Projects.FirstOrDefault(x => x.Id == e.ProjectId));
             var generators = Project.AnalyzerReferences.SelectMany(e => e.GetGeneratorsForAllLanguages());
             var includedProjects = referencedProjects?.ToList() ?? new List<Microsoft.CodeAnalysis.Project>();
             includedProjects.Add(Project);
@@ -123,9 +120,12 @@ namespace HotReloadKit.Builder
             syntaxTreeList.AddRange(partialSyntaxTrees);
 
             // --------- metadata reference ---------
+            var mainPath = Path.GetDirectoryName(Project.OutputFilePath)!;
+
             List<MetadataReference> metadataReferences = new List<MetadataReference>();
-            metadataReferences.AddRange(includedProjects.Select(e => MetadataReference.CreateFromFile(OutputFilePath ?? Project.OutputFilePath)));
-            metadataReferences.AddRange(compilation.References);
+            var metaDatas = includedProjects.Select(e => MetadataReference.CreateFromFile(Path.Combine(mainPath, Path.GetFileName(e!.OutputFilePath!))));
+            metadataReferences.AddRange(metaDatas);
+            metadataReferences.AddRange(Project.MetadataReferences);
 
             // --------- new compilation ------------
 
@@ -145,7 +145,7 @@ namespace HotReloadKit.Builder
         {
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
-            {
+            {               
                 var emitResult = newCompilation.Emit(dllStream, pdbStream);
                 if (emitResult.Success)
                 {

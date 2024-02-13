@@ -54,7 +54,7 @@ public static class HotReloader
                     var messageData = JsonSerializer.Deserialize<HotReloadServerConnectionData>(message);
                     if (messageData?.Token == HotReloadServerConnectionData.DefaultToken)
                     {
-                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort} server version: {messageData.Version} guid: {messageData.Guid}");
+                        Debug.WriteLine($"HotReloadKit connected - address: {serverIP.ToString()} port: {serverPort} protocol ver: {messageData.Version} guid: {messageData.Guid}");
                         _ = ClientRunLoop(client);
                         return;
                     }
