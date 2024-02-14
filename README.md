@@ -4,7 +4,11 @@ HotReloadKit is an extension tailored for C# .NET Core projects, delivering effi
 
 - [Sharp.UI GitHub Repository](https://github.com/idexus/Sharp.UI)
 
-# Usage 
+<a href="https://youtu.be/wxQr0p3lEg0" target="_blank">
+ <img src="https://github.com/idexus/Sharp.UI/raw/main/doc/assets/ytscreen2.jpg" alt="Hot Reload Support" width="640" border="0" />
+</a>
+
+# Simple Usage 
 
 ```cs
 using HotReloadKit;
